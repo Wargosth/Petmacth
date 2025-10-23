@@ -1,0 +1,4008 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetMatch+ - Plataforma de Adoção de Animais</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #a7f3d0;
+            --secondary-color: #f97316;
+            --secondary-dark: #ea580c;
+            --accent-color: #8b5cf6;
+            --accent-dark: #7c3aed;
+            --neutral-light: #f8fafc;
+            --neutral-medium: #e2e8f0;
+            --neutral-dark: #475569;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            --border-radius: 12px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--neutral-light) 0%, #f0fdfa 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Tela de Introdução */
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        #intro-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .logo-intro {
+            font-size: 4rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.7);
+        }
+
+        .logo-intro.animate {
+            animation: pulse 2s infinite;
+        }
+
+        .logo-intro i {
+            color: var(--secondary-color);
+            margin-right: 1rem;
+        }
+
+        .logo-intro.animate i {
+            filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.7));
+        }
+
+        .intro-subtitle {
+            color: #cbd5e1;
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            max-width: 600px;
+            padding: 0 1rem;
+        }
+
+        .intro-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .intro-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        /* Animação de partículas no fundo */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(16, 185, 129, 0.3);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .particles.animate .particle {
+            animation: float 6s infinite ease-in-out;
+            opacity: 1;
+        }
+
+        .particle:nth-child(1) {
+            width: 20px;
+            height: 20px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            width: 15px;
+            height: 15px;
+            top: 60%;
+            left: 80%;
+            animation-delay: 1s;
+        }
+
+        .particle:nth-child(3) {
+            width: 25px;
+            height: 25px;
+            top: 80%;
+            left: 20%;
+            animation-delay: 2s;
+        }
+
+        .particle:nth-child(4) {
+            width: 18px;
+            height: 18px;
+            top: 30%;
+            left: 70%;
+            animation-delay: 3s;
+        }
+
+        .particle:nth-child(5) {
+            width: 22px;
+            height: 22px;
+            top: 70%;
+            left: 40%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo i {
+            color: var(--secondary-color);
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--neutral-medium);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background-color: var(--accent-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--neutral-medium);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--neutral-medium);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--neutral-medium);
+            border-radius: var(--border-radius);
+            background-color: white;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border-radius: calc(var(--border-radius) - 4px);
+            font-weight: 600;
+            white-space: nowrap;
+            transition: var(--transition);
+            cursor: pointer;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: none;
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-success {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 28rem;
+            overflow: hidden;
+        }
+
+        .animal-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: white;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .animal-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .animal-image {
+            width: 100%;
+            height: 12rem;
+            object-fit: cover;
+            background-color: var(--neutral-medium);
+        }
+
+        .product-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: white;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 10rem;
+            object-fit: cover;
+            background-color: var(--neutral-medium);
+        }
+
+        .price-tag {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stock-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .stock-low {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .stock-out {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stock-ok {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .space-x-2 > * + * { margin-left: 0.5rem; }
+        .space-x-4 > * + * { margin-left: 1rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .bg-white { background-color: white; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-800 { color: #1f2937; }
+        .border { border-width: 1px; }
+        .border-gray-300 { border-color: #d1d5db; }
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .gap-4 { gap: 1rem; }
+        .col-span-full { grid-column: 1 / -1; }
+
+        .input-error {
+            border-color: var(--error-color) !important;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .chat-message {
+            display: flex;
+            margin-bottom: 0.75rem;
+        }
+        .chat-message.self {
+            justify-content: flex-end;
+        }
+        .chat-message.self > div {
+            max-width: 70%;
+            border-top-right-radius: 4px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+        }
+        .chat-message.other {
+            justify-content: flex-start;
+        }
+        .chat-message.other > div {
+            max-width: 70%;
+            border-top-left-radius: 4px;
+            background-color: var(--neutral-medium);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+        }
+        .chat-message p {
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+        .chat-message span {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--neutral-medium);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        /* Novos estilos para sistema de compras e avaliações */
+        .star-rating {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: #f59e0b;
+        }
+
+        .star:hover {
+            color: #f59e0b;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--error-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-item {
+            border-bottom: 1px solid var(--neutral-medium);
+            padding: 1rem 0;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--neutral-medium);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid var(--neutral-medium);
+            border-radius: var(--border-radius);
+            padding: 0.25rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            
+            .tab-button {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .logo-intro {
+                font-size: 2.5rem;
+            }
+            
+            .intro-subtitle {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .grid-cols-2, .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .flex.space-x-4 {
+                flex-direction: column;
+            }
+            
+            .flex.space-x-4 > * + * {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            
+            .logo-intro {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Tela de Introdução -->
+    <div id="intro-screen">
+        <div class="particles" id="particles-container">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="logo-intro" id="logo-intro">
+            <i class="fas fa-heart"></i>PetMatch+
+        </div>
+        <div class="intro-subtitle">
+            Conectando animais a lares amorosos e oferecendo tudo que seu pet precisa em um só lugar
+        </div>
+        <button class="intro-button" id="start-button">
+            Começar Agora
+        </button>
+    </div>
+
+    <!-- Conteúdo Principal (inicialmente oculto) -->
+    <div id="main-content" class="hidden min-h-screen p-4">
+        <!-- Modais -->
+        <div id="message-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header p-4 border-b">
+                    <h3 id="modal-title" class="text-xl font-bold text-gray-800">Título</h3>
+                </div>
+                <div class="modal-body p-4">
+                    <p id="modal-message" class="text-gray-600">Mensagem</p>
+                </div>
+                <div class="modal-footer p-4 border-t flex gap-3">
+                    <button id="close-message-modal" class="btn btn-primary w-full">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirm-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header p-4 border-b">
+                    <h3 id="confirm-title" class="text-xl font-bold text-gray-800">Confirmação</h3>
+                </div>
+                <div class="modal-body p-4">
+                    <p id="confirm-message" class="text-gray-600">Deseja confirmar esta ação?</p>
+                </div>
+                <div class="modal-footer p-4 border-t flex gap-3">
+                    <button id="confirm-yes" class="btn btn-primary flex-1">
+                        Sim
+                    </button>
+                    <button id="confirm-no" class="btn btn-outline flex-1">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Editar Animal -->
+        <div id="edit-animal-modal" class="modal-overlay hidden">
+            <div class="modal w-full max-w-2xl">
+                <div class="modal-header p-4 border-b">
+                    <h3 class="text-xl font-bold text-gray-800">Editar Animal</h3>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="edit-animal-nome" placeholder="Nome do animal" class="form-control">
+                        <input type="number" id="edit-animal-idade" placeholder="Idade (anos)" class="form-control">
+                        <select id="edit-animal-porte" class="form-control">
+                            <option value="">Porte</option>
+                            <option value="pequeno">Pequeno</option>
+                            <option value="medio">Médio</option>
+                            <option value="grande">Grande</option>
+                        </select>
+                        <select id="edit-animal-categoria" class="form-control">
+                            <option value="">Categoria</option>
+                            <option value="cachorro">Cachorro</option>
+                            <option value="gato">Gato</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                        <textarea id="edit-animal-detalhes" placeholder="Detalhes de saúde, comportamento, etc."
+                            class="form-control md:col-span-2"></textarea>
+                        <input type="text" id="edit-animal-foto" placeholder="URL da foto" class="form-control md:col-span-2">
+                        <div class="md:col-span-2 flex items-center space-x-2">
+                            <input type="checkbox" id="edit-animal-disponivel" class="w-4 h-4">
+                            <label for="edit-animal-disponivel" class="text-sm text-gray-700">Disponível para adoção</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-t flex gap-3">
+                    <button class="btn btn-outline flex-1" onclick="document.getElementById('edit-animal-modal').classList.add('hidden')">
+                        Cancelar
+                    </button>
+                    <button id="save-animal-btn" class="btn btn-primary flex-1">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Gerenciar Produtos -->
+        <div id="product-modal" class="modal-overlay hidden">
+            <div class="modal w-full max-w-2xl">
+                <div class="modal-header p-4 border-b">
+                    <h3 id="product-modal-title" class="text-xl font-bold text-gray-800">Cadastrar Produto</h3>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="product-nome" placeholder="Nome do produto" class="form-control">
+                        <input type="number" id="product-preco" placeholder="Preço (R$)" step="0.01" class="form-control">
+                        <select id="product-categoria" class="form-control">
+                            <option value="">Categoria</option>
+                            <option value="racao">Ração</option>
+                            <option value="brinquedo">Brinquedo</option>
+                            <option value="acessorios">Acessórios</option>
+                            <option value="higiene">Higiene</option>
+                            <option value="medicamento">Medicamento</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                        <input type="number" id="product-estoque" placeholder="Quantidade em estoque" class="form-control">
+                        <textarea id="product-descricao" placeholder="Descrição do produto"
+                            class="form-control md:col-span-2"></textarea>
+                        <input type="text" id="product-foto" placeholder="URL da imagem do produto" class="form-control md:col-span-2">
+                        <div class="md:col-span-2 flex items-center space-x-2">
+                            <input type="checkbox" id="product-ativo" class="w-4 h-4" checked>
+                            <label for="product-ativo" class="text-sm text-gray-700">Produto ativo</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-t flex gap-3">
+                    <button class="btn btn-outline flex-1" onclick="closeProductModal()">
+                        Cancelar
+                    </button>
+                    <button id="save-product-btn" class="btn btn-accent flex-1">
+                        Salvar Produto
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Carrinho de Compras -->
+        <div id="cart-modal" class="modal-overlay hidden">
+            <div class="modal w-full max-w-2xl">
+                <div class="modal-header p-4 border-b">
+                    <h3 class="text-xl font-bold text-gray-800">Carrinho de Compras</h3>
+                </div>
+                <div class="modal-body p-4 max-h-96 overflow-y-auto">
+                    <div id="cart-items">
+                        <p class="text-gray-500 text-center py-4">Carrinho vazio</p>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-t">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-bold">Total:</span>
+                        <span id="cart-total" class="text-lg font-bold text-primary-color">R$ 0,00</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="btn btn-outline flex-1" onclick="closeCartModal()">
+                            Continuar Comprando
+                        </button>
+                        <button id="checkout-btn" class="btn btn-primary flex-1" onclick="finalizarCompra()">
+                            Finalizar Compra
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Avaliação -->
+        <div id="rating-modal" class="modal-overlay hidden">
+            <div class="modal w-full max-w-md">
+                <div class="modal-header p-4 border-b">
+                    <h3 class="text-xl font-bold text-gray-800">Avaliar Produto</h3>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="rating-product-info" class="mb-4">
+                        <!-- Informações do produto serão preenchidas via JavaScript -->
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Avaliação</label>
+                        <div class="star-rating" id="star-rating">
+                            <span class="star text-2xl" data-rating="1">★</span>
+                            <span class="star text-2xl" data-rating="2">★</span>
+                            <span class="star text-2xl" data-rating="3">★</span>
+                            <span class="star text-2xl" data-rating="4">★</span>
+                            <span class="star text-2xl" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="rating-value" value="0">
+                    </div>
+                    <div class="mb-4">
+                        <label for="rating-comment" class="block text-sm font-medium text-gray-700 mb-2">Comentário (opcional)</label>
+                        <textarea id="rating-comment" placeholder="Compartilhe sua experiência com este produto..." class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-t flex gap-3">
+                    <button class="btn btn-outline flex-1" onclick="closeRatingModal()">
+                        Cancelar
+                    </button>
+                    <button id="submit-rating-btn" class="btn btn-primary flex-1" onclick="submitRating()">
+                        Enviar Avaliação
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header atualizado com carrinho -->
+        <header class="card mb-6">
+            <div class="flex justify-between items-center p-4">
+                <h1 class="logo text-2xl text-green-500"><i class="fas fa-heart mr-2"></i> PetMatch+</h1>
+                <div class="flex items-center space-x-4">
+                    <div id="user-info" class="hidden flex items-center space-x-4">
+                        <span id="profile-name" class="badge badge-info"></span>
+                        <!-- Ícone do carrinho (visível apenas para adotantes) -->
+                        <div id="cart-icon" class="hidden relative cursor-pointer" onclick="openCartModal()">
+                            <i class="fas fa-shopping-cart text-xl text-gray-600"></i>
+                            <span id="cart-count" class="cart-badge hidden">0</span>
+                        </div>
+                        <button id="logout-button" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Login View -->
+            <div id="login-view" class="card max-w-md mx-auto">
+                <div class="card-body text-center p-6">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Bem-vindo ao PetMatch+!</h2>
+                    <p class="text-gray-600 mb-6">Faça login ou crie sua conta</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <input type="email" id="login-email" placeholder="Email" class="form-control">
+                            <div id="login-email-error" class="error-message hidden"></div>
+                        </div>
+                        <div>
+                            <input type="password" id="login-password" placeholder="Senha" class="form-control">
+                            <div id="login-password-error" class="error-message hidden"></div>
+                        </div>
+                        <button id="login-button" class="btn btn-primary w-full">
+                            Entrar
+                        </button>
+                    </div>
+
+                    <div class="mt-6">
+                        <p class="text-gray-600 mb-4">Ou crie sua conta:</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button id="register-adotante-btn" class="btn btn-secondary">
+                                Sou Adotante
+                            </button>
+                            <button id="register-abrigo-btn" class="btn btn-accent">
+                                Sou Abrigo
+                            </button>
+                        </div>
+                        <div class="mt-4">
+                            <button id="register-loja-btn" class="btn bg-purple-500 text-white w-full hover:bg-purple-600">
+                                Sou Loja Parceira
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register Views -->
+            <div id="register-adotante-view" class="hidden max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cadastro Adotante</h2>
+                <div class="space-y-4">
+                    <input type="text" id="reg-adotante-nome" placeholder="Nome completo" class="form-control">
+                    <div id="reg-adotante-nome-error" class="error-message hidden"></div>
+                    
+                    <input type="email" id="reg-adotante-email" placeholder="Email" class="form-control">
+                    <div id="reg-adotante-email-error" class="error-message hidden"></div>
+                    
+                    <input type="password" id="reg-adotante-senha" placeholder="Senha" class="form-control">
+                    <div id="reg-adotante-senha-error" class="error-message hidden"></div>
+                    
+                    <input type="text" id="reg-adotante-telefone" placeholder="Telefone" class="form-control">
+                    <input type="text" id="reg-adotante-endereco" placeholder="Endereço completo" class="form-control">
+                    
+                    <div class="flex space-x-4">
+                        <button id="register-adotante-submit" class="btn btn-secondary flex-1">
+                            Cadastrar
+                        </button>
+                        <button id="back-to-login-from-adotante" class="btn btn-outline flex-1">
+                            Voltar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="register-abrigo-view" class="hidden max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cadastro Abrigo</h2>
+                <div class="space-y-4">
+                    <input type="text" id="reg-abrigo-nome" placeholder="Nome do abrigo" class="form-control">
+                    <div id="reg-abrigo-nome-error" class="error-message hidden"></div>
+                    
+                    <input type="email" id="reg-abrigo-email" placeholder="Email" class="form-control">
+                    <div id="reg-abrigo-email-error" class="error-message hidden"></div>
+                    
+                    <input type="password" id="reg-abrigo-senha" placeholder="Senha" class="form-control">
+                    <div id="reg-abrigo-senha-error" class="error-message hidden"></div>
+                    
+                    <input type="text" id="reg-abrigo-telefone" placeholder="Telefone" class="form-control">
+                    <input type="text" id="reg-abrigo-endereco" placeholder="Endereço completo" class="form-control">
+                    <textarea id="reg-abrigo-sobre" placeholder="Descrição do abrigo" class="form-control"></textarea>
+                    
+                    <div class="flex space-x-4">
+                        <button id="register-abrigo-submit" class="btn btn-accent flex-1">
+                            Cadastrar
+                        </button>
+                        <button id="back-to-login-from-abrigo" class="btn btn-outline flex-1">
+                            Voltar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="register-loja-view" class="hidden max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cadastro Loja Parceira</h2>
+                <div class="space-y-4">
+                    <input type="text" id="reg-loja-nome" placeholder="Nome da loja" class="form-control">
+                    <div id="reg-loja-nome-error" class="error-message hidden"></div>
+                    
+                    <input type="email" id="reg-loja-email" placeholder="Email" class="form-control">
+                    <div id="reg-loja-email-error" class="error-message hidden"></div>
+                    
+                    <input type="password" id="reg-loja-senha" placeholder="Senha" class="form-control">
+                    <div id="reg-loja-senha-error" class="error-message hidden"></div>
+                    
+                    <input type="text" id="reg-loja-telefone" placeholder="Telefone" class="form-control">
+                    <input type="text" id="reg-loja-endereco" placeholder="Endereço completo" class="form-control">
+                    <input type="text" id="reg-loja-foto" placeholder="URL da imagem da loja" class="form-control">
+                    <textarea id="reg-loja-sobre" placeholder="Descrição dos produtos/serviços" class="form-control"></textarea>
+                    
+                    <div class="flex space-x-4">
+                        <button id="register-loja-submit" class="btn bg-purple-500 text-white flex-1 hover:bg-purple-600">
+                            Cadastrar
+                        </button>
+                        <button id="back-to-login-from-loja" class="btn btn-outline flex-1">
+                            Voltar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading View -->
+            <div id="loading-view" class="hidden text-center py-16 bg-white rounded-xl shadow-lg">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="mt-4 text-gray-600" id="loading-message">Carregando...</p>
+            </div>
+
+            <!-- Abrigo Dashboard -->
+            <div id="dashboard-abrigo" class="hidden">
+                <div class="bg-white p-4 rounded-xl shadow-lg mb-6">
+                    <div class="flex space-x-4 overflow-x-auto">
+                        <button id="tab-animais" class="tab-button active">
+                            <i class="fas fa-paw mr-2"></i>Meus Animais
+                        </button>
+                        <button id="tab-processos" class="tab-button">
+                            <i class="fas fa-list-alt mr-2"></i>Processos
+                        </button>
+                        <button id="tab-abrigo-chat" class="tab-button">
+                            <i class="fas fa-comments mr-2"></i>Chat
+                        </button>
+                    </div>
+                </div>
+
+                <div id="abrigo-animais" class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Cadastrar Novo Animal</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="animal-nome" placeholder="Nome do animal" class="form-control">
+                            <input type="number" id="animal-idade" placeholder="Idade (anos)" class="form-control">
+                            <select id="animal-porte" class="form-control">
+                                <option value="">Porte</option>
+                                <option value="pequeno">Pequeno</option>
+                                <option value="medio">Médio</option>
+                                <option value="grande">Grande</option>
+                            </select>
+                            <select id="animal-categoria" class="form-control">
+                                <option value="">Categoria</option>
+                                <option value="cachorro">Cachorro</option>
+                                <option value="gato">Gato</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                            <textarea id="animal-detalhes" placeholder="Detalhes de saúde, comportamento, etc."
+                                class="form-control md:col-span-2"></textarea>
+                            <input type="text" id="animal-foto" placeholder="URL da foto" class="form-control md:col-span-2">
+                            <button id="add-animal-btn" class="btn btn-primary md:col-span-2">
+                                <i class="fas fa-plus mr-2"></i>Cadastrar Animal
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Meus Animais</h3>
+                        <div id="animais-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <p class="text-gray-500 text-center py-4 col-span-full">Nenhum animal cadastrado ainda</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="abrigo-processos" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Processos de Adoção</h2>
+                        <div id="processos-list" class="space-y-4">
+                            <p class="text-gray-500 text-center py-4">Carregando processos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="abrigo-chat" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4" id="abrigo-chat-title">Chat</h2>
+                        <div id="abrigo-chat-messages" class="h-96 overflow-y-auto p-3 bg-gray-50 rounded-lg border mb-4"></div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="abrigo-chat-input" placeholder="Digite sua mensagem..." class="form-control flex-1">
+                            <button id="send-abrigo-message-btn" class="btn btn-primary btn-sm">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adotante Dashboard -->
+            <div id="dashboard-adotante" class="hidden">
+                <div class="bg-white p-4 rounded-xl shadow-lg mb-6">
+                    <div class="flex space-x-4 overflow-x-auto">
+                        <button id="tab-adotante-animais" class="tab-button active">
+                            <i class="fas fa-paw mr-2"></i>Animais
+                        </button>
+                        <button id="tab-minhas-adocoes" class="tab-button">
+                            <i class="fas fa-heart mr-2"></i>Minhas Adoções
+                        </button>
+                        <button id="tab-lojas" class="tab-button">
+                            <i class="fas fa-store mr-2"></i>Lojas Parceiras
+                        </button>
+                        <button id="tab-compras" class="tab-button">
+                            <i class="fas fa-shopping-bag mr-2"></i>Minhas Compras
+                        </button>
+                        <button id="tab-adotante-chat" class="tab-button hidden">
+                            <i class="fas fa-comments mr-2"></i>Chat
+                        </button>
+                    </div>
+                </div>
+
+                <div id="adotante-animais" class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2 md:mb-0">Animais Disponíveis</h2>
+                            <div class="flex space-x-2">
+                                <select id="filter-categoria" class="form-control">
+                                    <option value="">Todas categorias</option>
+                                    <option value="cachorro">Cachorro</option>
+                                    <option value="gato">Gato</option>
+                                    <option value="outros">Outros</option>
+                                </select>
+                                <select id="filter-porte" class="form-control">
+                                    <option value="">Todos portes</option>
+                                    <option value="pequeno">Pequeno</option>
+                                    <option value="medio">Médio</option>
+                                    <option value="grande">Grande</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="animais-disponiveis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <p class="text-gray-500 text-center py-8 col-span-full">Carregando animais...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adotante-minhas-adocoes" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Minhas Adoções</h2>
+                        <div id="minhas-adocoes-list" class="space-y-4">
+                            <p class="text-gray-500 text-center py-4">Você ainda não iniciou nenhum processo de adoção</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adotante-lojas" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Lojas Parceiras</h2>
+                        <div id="lojas-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <p class="text-gray-500 text-center py-8 col-span-full">Carregando lojas...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adotante-compras" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Minhas Compras</h2>
+                        <div id="minhas-compras-list" class="space-y-4">
+                            <p class="text-gray-500 text-center py-4">Carregando suas compras...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="adotante-chat" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4" id="adotante-chat-title">Chat</h2>
+                        <div id="adotante-chat-messages" class="h-96 overflow-y-auto p-3 bg-gray-50 rounded-lg border mb-4"></div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="adotante-chat-input" placeholder="Digite sua mensagem..." class="form-control flex-1">
+                            <button id="send-adotante-message-btn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loja Dashboard -->
+            <div id="dashboard-loja" class="hidden">
+                <div class="bg-white p-4 rounded-xl shadow-lg mb-6">
+                    <div class="flex space-x-4 overflow-x-auto">
+                        <button id="tab-loja-produtos" class="tab-button active">
+                            <i class="fas fa-box mr-2"></i>Meus Produtos
+                        </button>
+                        <button id="tab-loja-info" class="tab-button">
+                            <i class="fas fa-store mr-2"></i>Informações
+                        </button>
+                        <button id="tab-loja-contatos" class="tab-button">
+                            <i class="fas fa-envelope mr-2"></i>Contatos
+                        </button>
+                        <button id="tab-loja-pedidos" class="tab-button">
+                            <i class="fas fa-shopping-bag mr-2"></i>Pedidos
+                        </button>
+                    </div>
+                </div>
+
+                <div id="loja-produtos" class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-gray-800">Meus Produtos</h2>
+                            <button id="add-product-btn" class="btn btn-accent">
+                                <i class="fas fa-plus mr-2"></i>Novo Produto
+                            </button>
+                        </div>
+                        
+                        <div id="loja-produtos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <p class="text-gray-500 text-center py-8 col-span-full">Carregando produtos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loja-info" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Informações da Loja</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-6 rounded-lg">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Dados da Loja</h3>
+                                <div id="loja-info-details">
+                                    <p class="text-gray-600">Carregando informações...</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-6 rounded-lg">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Estatísticas</h3>
+                                <div id="loja-stats">
+                                    <p class="text-gray-600">Carregando estatísticas...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loja-contatos" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Contatos Recebidos</h2>
+                        <div id="loja-contatos-list">
+                            <p class="text-gray-500 text-center py-8">Carregando contatos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loja-pedidos" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Pedidos de Clientes</h2>
+                        <div id="loja-pedidos-list">
+                            <p class="text-gray-500 text-center py-8">Carregando pedidos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ============ CLASSES POO ============
+
+        // CLASSE para representar uma Adoção
+        class Adocao {
+            constructor(animalId, adotanteId, respostasQuestionario = '') {
+                this.id = null;
+                this.animal_id = animalId;
+                this.adotante_id = adotanteId;
+                this.status = 'pendente';
+                this.questionario_respostas = { resposta: respostasQuestionario };
+                this.data_solicitacao = new Date().toISOString();
+                this.animal = null;
+                this.abrigo = null;
+            }
+
+            // Método para salvar no banco
+            async salvar() {
+                try {
+                    const { data, error } = await supabase
+                        .from('adocoes')
+                        .insert([{
+                            animal_id: this.animal_id,
+                            adotante_id: this.adotante_id,
+                            status: this.status,
+                            questionario_respostas: this.questionario_respostas,
+                            data_solicitacao: this.data_solicitacao
+                        }])
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+                    
+                    this.id = data.id;
+                    return this;
+                } catch (error) {
+                    console.error('Erro ao salvar adoção:', error);
+                    throw error;
+                }
+            }
+
+            // Método estático para verificar adoção existente
+            static async verificarExistente(animalId, adotanteId) {
+                try {
+                    const { data, error } = await supabase
+                        .from('adocoes')
+                        .select('id')
+                        .eq('animal_id', animalId)
+                        .eq('adotante_id', adotanteId)
+                        .in('status', ['pendente', 'aprovado'])
+                        .single();
+
+                    return !error && data;
+                } catch (error) {
+                    console.error('Erro ao verificar adoção existente:', error);
+                    return false;
+                }
+            }
+
+            // Método para aprovar adoção
+            async aprovar() {
+                try {
+                    this.status = 'aprovado';
+                    const { error } = await supabase
+                        .from('adocoes')
+                        .update({ 
+                            status: this.status,
+                            data_aprovacao: new Date().toISOString()
+                        })
+                        .eq('id', this.id);
+
+                    if (error) throw error;
+                    return this;
+                } catch (error) {
+                    console.error('Erro ao aprovar adoção:', error);
+                    throw error;
+                }
+            }
+
+            // Método para rejeitar adoção
+            async rejeitar() {
+                try {
+                    this.status = 'rejeitado';
+                    const { error } = await supabase
+                        .from('adocoes')
+                        .update({ status: this.status })
+                        .eq('id', this.id);
+
+                    if (error) throw error;
+                    return this;
+                } catch (error) {
+                    console.error('Erro ao rejeitar adoção:', error);
+                    throw error;
+                }
+            }
+
+            // Método para cancelar adoção
+            async cancelar() {
+                try {
+                    this.status = 'cancelado';
+                    const { error } = await supabase
+                        .from('adocoes')
+                        .update({ status: this.status })
+                        .eq('id', this.id);
+
+                    if (error) throw error;
+                    return this;
+                } catch (error) {
+                    console.error('Erro ao cancelar adoção:', error);
+                    throw error;
+                }
+            }
+
+            // Método estático para carregar adoções por adotante
+            static async carregarPorAdotante(adotanteId) {
+                try {
+                    const { data, error } = await supabase
+                        .from('adocoes')
+                        .select(`
+                            *,
+                            animal:animais(nome, categoria, porte, idade, foto_url),
+                            abrigo:profiles(nome, telefone)
+                        `)
+                        .eq('adotante_id', adotanteId)
+                        .order('data_solicitacao', { ascending: false });
+
+                    if (error) throw error;
+
+                    return data.map(item => {
+                        const adocao = new Adocao(item.animal_id, item.adotante_id, item.questionario_respostas?.resposta);
+                        adocao.id = item.id;
+                        adocao.status = item.status;
+                        adocao.data_solicitacao = item.data_solicitacao;
+                        adocao.data_aprovacao = item.data_aprovacao;
+                        adocao.animal = item.animal;
+                        adocao.abrigo = item.abrigo;
+                        return adocao;
+                    });
+                } catch (error) {
+                    console.error('Erro ao carregar adoções:', error);
+                    throw error;
+                }
+            }
+
+            // CLASSE Adocao - Método carregarPorAbrigo CORRIGIDO
+            static async carregarPorAbrigo(abrigoId) {
+                try {
+                    // Buscar adoções com join correto
+                    const { data: adocoes, error } = await supabase
+                        .from('adocoes')
+                        .select(`
+                            *,
+                            animal:animais!inner(nome, categoria, porte, idade, foto_url, abrigo_id),
+                            adotante:profiles!adocoes_adotante_id_fkey(nome, telefone, endereco)
+                        `)
+                        .eq('animal.abrigo_id', abrigoId)
+                        .order('data_solicitacao', { ascending: false });
+
+                    if (error) throw error;
+
+                    return adocoes.map(item => {
+                        const adocao = new Adocao(item.animal_id, item.adotante_id, item.questionario_respostas?.resposta);
+                        adocao.id = item.id;
+                        adocao.status = item.status;
+                        adocao.data_solicitacao = item.data_solicitacao;
+                        adocao.data_aprovacao = item.data_aprovacao;
+                        adocao.animal = item.animal;
+                        adocao.adotante = item.adotante;
+                        return adocao;
+                    });
+                } catch (error) {
+                    console.error('Erro ao carregar adoções do abrigo:', error);
+                    throw error;
+                }
+            }
+
+            // Método para renderizar card da adoção
+            renderCard() {
+                const statusMap = {
+                    'pendente': { class: 'badge-warning', text: 'Pendente' },
+                    'aprovado': { class: 'badge-success', text: 'Aprovado' },
+                    'rejeitado': { class: 'badge-error', text: 'Rejeitado' },
+                    'cancelado': { class: 'badge-error', text: 'Cancelado' }
+                };
+                
+                const statusInfo = statusMap[this.status] || statusMap.pendente;
+
+                return `
+                    <div class="card p-4 fade-in">
+                        <div class="flex items-start space-x-4">
+                            <img src="${this.animal?.foto_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=300&h=200&fit=crop'}" 
+                                 alt="${this.animal?.nome}" 
+                                 class="w-16 h-16 rounded-lg object-cover">
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold text-lg">${this.animal?.nome || 'Animal'}</h4>
+                                        <p class="text-gray-600">${this.animal?.categoria} - ${this.animal?.porte}</p>
+                                        <p class="text-sm text-gray-500">Abrigo: ${this.abrigo?.nome || this.adotante?.nome}</p>
+                                    </div>
+                                    <span class="badge ${statusInfo.class}">${statusInfo.text}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">
+                                    Solicitado em: ${new Date(this.data_solicitacao).toLocaleDateString('pt-BR')}
+                                </p>
+                                ${this.status === 'pendente' && currentRole === 'adotante' ? `
+                                    <div class="mt-3">
+                                        <button class="btn btn-outline btn-sm mr-2" onclick="AdocaoManager.cancelarAdocao('${this.id}')">
+                                            Cancelar Solicitação
+                                        </button>
+                                        <button class="btn btn-primary btn-sm" onclick="abrirChatAdocao('${this.id}')">
+                                            <i class="fas fa-comments mr-1"></i>Chat
+                                        </button>
+                                    </div>
+                                ` : ''}
+                                ${this.status === 'pendente' && currentRole === 'abrigo' ? `
+                                    <div class="mt-3 flex space-x-2">
+                                        <button class="btn btn-success btn-sm flex-1" onclick="AdocaoManager.aprovarAdocao('${this.id}')">
+                                            <i class="fas fa-check mr-1"></i>Aprovar
+                                        </button>
+                                        <button class="btn btn-error btn-sm flex-1" onclick="AdocaoManager.rejeitarAdocao('${this.id}')">
+                                            <i class="fas fa-times mr-1"></i>Rejeitar
+                                        </button>
+                                        <button class="btn btn-primary btn-sm flex-1" onclick="abrirChatAdocao('${this.id}')">
+                                            <i class="fas fa-comments mr-1"></i>Chat
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // CLASSE para gerenciar o processo de adoção
+        class AdocaoManager {
+            static async solicitarAdocao(animalId, adotanteId) {
+                try {
+                    // Verificar se já existe adoção
+                    const adocaoExistente = await Adocao.verificarExistente(animalId, adotanteId);
+                    if (adocaoExistente) {
+                        throw new Error('Você já possui uma solicitação de adoção para este animal.');
+                    }
+
+                    // Coletar questionário
+                    const respostas = prompt('Por favor, conte um pouco sobre você e por que gostaria de adotar este animal:');
+                    
+                    if (!respostas) {
+                        throw new Error('É necessário preencher o questionário para solicitar a adoção.');
+                    }
+
+                    // Criar e salvar a adoção
+                    const novaAdocao = new Adocao(animalId, adotanteId, respostas);
+                    await novaAdocao.salvar();
+
+                    return novaAdocao;
+                } catch (error) {
+                    console.error('Erro ao solicitar adoção:', error);
+                    throw error;
+                }
+            }
+
+            static async aprovarAdocao(adocaoId) {
+                showConfirmModal(
+                    'Aprovar Adoção', 
+                    'Tem certeza que deseja aprovar esta adoção?', 
+                    async (confirmed) => {
+                        if (!confirmed) return;
+
+                        showLoading('Aprovando adoção...');
+                        
+                        try {
+                            // Buscar a adoção
+                            const { data } = await supabase
+                                .from('adocoes')
+                                .select('*')
+                                .eq('id', adocaoId)
+                                .single();
+
+                            if (data) {
+                                const adocao = new Adocao(data.animal_id, data.adotante_id, data.questionario_respostas?.resposta);
+                                adocao.id = data.id;
+                                adocao.status = data.status;
+                                
+                                await adocao.aprovar();
+                                
+                                showMessageModal('Sucesso', 'Adoção aprovada com sucesso!');
+                                loadProcessosAdocao();
+                            }
+                        } catch (error) {
+                            console.error('Erro ao aprovar adoção:', error);
+                            showMessageModal('Erro', 'Falha ao aprovar adoção.');
+                        }
+                    }
+                );
+            }
+
+            static async rejeitarAdocao(adocaoId) {
+                showConfirmModal(
+                    'Rejeitar Adoção', 
+                    'Tem certeza que deseja rejeitar esta adoção?', 
+                    async (confirmed) => {
+                        if (!confirmed) return;
+
+                        showLoading('Rejeitando adoção...');
+                        
+                        try {
+                            // Buscar a adoção
+                            const { data } = await supabase
+                                .from('adocoes')
+                                .select('*')
+                                .eq('id', adocaoId)
+                                .single();
+
+                            if (data) {
+                                const adocao = new Adocao(data.animal_id, data.adotante_id, data.questionario_respostas?.resposta);
+                                adocao.id = data.id;
+                                adocao.status = data.status;
+                                
+                                await adocao.rejeitar();
+                                
+                                showMessageModal('Sucesso', 'Adoção rejeitada.');
+                                loadProcessosAdocao();
+                            }
+                        } catch (error) {
+                            console.error('Erro ao rejeitar adoção:', error);
+                            showMessageModal('Erro', 'Falha ao rejeitar adoção.');
+                        }
+                    }
+                );
+            }
+
+            static async cancelarAdocao(adocaoId) {
+                showConfirmModal(
+                    'Cancelar Adoção', 
+                    'Tem certeza que deseja cancelar esta solicitação de adoção?', 
+                    async (confirmed) => {
+                        if (!confirmed) return;
+
+                        showLoading('Cancelando adoção...');
+                        
+                        try {
+                            // Buscar a adoção
+                            const { data } = await supabase
+                                .from('adocoes')
+                                .select('*')
+                                .eq('id', adocaoId)
+                                .single();
+
+                            if (data) {
+                                const adocao = new Adocao(data.animal_id, data.adotante_id, data.questionario_respostas?.resposta);
+                                adocao.id = data.id;
+                                adocao.status = data.status;
+                                
+                                await adocao.cancelar();
+                                
+                                showMessageModal('Sucesso', 'Solicitação de adoção cancelada.');
+                                loadMinhasAdocoes();
+                            }
+                        } catch (error) {
+                            console.error('Erro ao cancelar adoção:', error);
+                            showMessageModal('Erro', 'Falha ao cancelar adoção.');
+                        }
+                    }
+                );
+            }
+        }
+
+        // CLASSE para representar um Pedido
+        class Pedido {
+            constructor(adotanteId, itens = []) {
+                this.id = null;
+                this.adotante_id = adotanteId;
+                this.total = this.calcularTotal(itens);
+                this.status = 'pendente';
+                this.itens = itens;
+                this.created_at = new Date().toISOString();
+            }
+
+            calcularTotal(itens) {
+                return itens.reduce((total, item) => total + (item.preco * item.quantity), 0);
+            }
+
+            // CLASSE Pedido - Método salvar CORRIGIDO
+            async salvar() {
+                try {
+                    // Criar pedido
+                    const { data: pedido, error: pedidoError } = await supabase
+                        .from('pedidos')
+                        .insert([{
+                            adotante_id: this.adotante_id,
+                            total: this.total,
+                            status: this.status
+                        }])
+                        .select()
+                        .single();
+
+                    if (pedidoError) throw pedidoError;
+
+                    this.id = pedido.id;
+
+                    // Adicionar itens do pedido
+                    const itensPedido = this.itens.map(item => ({
+                        pedido_id: this.id,
+                        produto_id: item.id,
+                        loja_id: item.loja_id,
+                        quantidade: item.quantity,
+                        preco_unitario: item.preco
+                    }));
+
+                    const { error: itensError } = await supabase
+                        .from('itens_pedido')
+                        .insert(itensPedido);
+
+                    if (itensError) {
+                        // Se der erro nos itens, deletar o pedido criado
+                        await supabase
+                            .from('pedidos')
+                            .delete()
+                            .eq('id', this.id);
+                        throw itensError;
+                    }
+
+                    return this;
+                } catch (error) {
+                    console.error('Erro ao salvar pedido:', error);
+                    throw error;
+                }
+            }
+
+            static async carregarPorAdotante(adotanteId) {
+                try {
+                    const { data: pedidos, error } = await supabase
+                        .from('pedidos')
+                        .select(`
+                            *,
+                            itens:itens_pedido(
+                                quantidade,
+                                preco_unitario,
+                                produto:produtos(nome, categoria, foto_url),
+                                loja:profiles(nome)
+                            )
+                        `)
+                        .eq('adotante_id', adotanteId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    return pedidos || [];
+                } catch (error) {
+                    console.error('Erro ao carregar pedidos:', error);
+                    throw error;
+                }
+            }
+
+            // CLASSE Pedido - Método carregarPorLoja CORRIGIDO
+            static async carregarPorLoja(lojaId) {
+                try {
+                    const { data: pedidos, error } = await supabase
+                        .from('pedidos')
+                        .select(`
+                            *,
+                            adotante:profiles(nome, endereco),
+                            itens:itens_pedido(
+                                quantidade,
+                                preco_unitario,
+                                produto:produtos(nome, categoria, estoque)
+                            )
+                        `)
+                        .eq('itens.loja_id', lojaId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    return pedidos || [];
+                } catch (error) {
+                    console.error('Erro ao carregar pedidos da loja:', error);
+                    throw error;
+                }
+            }
+
+            async autorizarEntrega() {
+                try {
+                    this.status = 'entregue';
+                    const { error } = await supabase
+                        .from('pedidos')
+                        .update({ 
+                            status: this.status,
+                            data_entrega: new Date().toISOString()
+                        })
+                        .eq('id', this.id);
+
+                    if (error) throw error;
+                    return this;
+                } catch (error) {
+                    console.error('Erro ao autorizar entrega:', error);
+                    throw error;
+                }
+            }
+        }
+
+        // ============ CONFIGURAÇÃO SUPABASE ============
+        const SUPABASE_URL = 'https://siprzkknsdmkcrpmougz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcHJ6a2tuc2Rta2NycG1vdWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2MzUyNjUsImV4cCI6MjA3NjIxMTI2NX0.wh5Ewc33xJjzSneaaKLEzPYXLnTJz_6IdIl4sLmoS80';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Variáveis de estado
+        let currentUser = null;
+        let currentRole = null;
+        let currentChatAdocaoId = null;
+        let editingAnimalId = null;
+        let editingProductId = null;
+        let cart = [];
+        let currentRatingProductId = null;
+
+        // Mapeamento de Views
+        const views = {
+            'login-view': document.getElementById('login-view'),
+            'register-adotante-view': document.getElementById('register-adotante-view'),
+            'register-abrigo-view': document.getElementById('register-abrigo-view'),
+            'register-loja-view': document.getElementById('register-loja-view'),
+            'loading-view': document.getElementById('loading-view'),
+            'dashboard-abrigo': document.getElementById('dashboard-abrigo'),
+            'dashboard-adotante': document.getElementById('dashboard-adotante'),
+            'dashboard-loja': document.getElementById('dashboard-loja')
+        };
+
+        // ============ TELA DE INTRODUÇÃO ============
+
+        // Função auxiliar para tratamento de erros do Supabase
+        function handleSupabaseError(error, operation) {
+            console.error(`Erro ao ${operation}:`, error);
+            
+            if (error.code === 'PGRST301') {
+                return 'Erro de permissão: Você não tem acesso a estes dados.';
+            } else if (error.code === '42703') {
+                return 'Erro na consulta: Coluna não encontrada.';
+            } else if (error.code === '42P01') {
+                return 'Erro: Tabela não encontrada.';
+            } else {
+                return `Erro: ${error.message}`;
+            }
+        }
+
+        function initializeIntroScreen() {
+            const introScreen = document.getElementById('intro-screen');
+            const startButton = document.getElementById('start-button');
+            const mainContent = document.getElementById('main-content');
+            const logoIntro = document.getElementById('logo-intro');
+            const particlesContainer = document.getElementById('particles-container');
+
+            // Evento do botão "Começar Agora"
+            startButton.addEventListener('click', () => {
+                // Iniciar animações
+                logoIntro.classList.add('animate');
+                particlesContainer.classList.add('animate');
+                
+                // Aguardar um pouco para as animações começarem antes de fazer a transição
+                setTimeout(() => {
+                    introScreen.classList.add('fade-out');
+                    setTimeout(() => {
+                        introScreen.style.display = 'none';
+                        mainContent.classList.remove('hidden');
+                        initializeApp();
+                    }, 1000);
+                }, 500);
+            });
+        }
+
+        // ============ FUNÇÕES BÁSICAS ============
+
+        function showView(viewId) {
+            console.log('Mostrando view:', viewId);
+            Object.keys(views).forEach(key => {
+                if (views[key]) {
+                    views[key].classList.add('hidden');
+                }
+            });
+            if (views[viewId]) {
+                views[viewId].classList.remove('hidden');
+            }
+        }
+
+        function showMessageModal(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').innerHTML = message;
+            document.getElementById('message-modal').classList.remove('hidden');
+        }
+
+        function hideMessageModal() {
+            document.getElementById('message-modal').classList.add('hidden');
+        }
+
+        function showConfirmModal(title, message, callback) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+
+            const confirmYes = document.getElementById('confirm-yes');
+            const confirmNo = document.getElementById('confirm-no');
+
+            // Clonar para remover event listeners antigos
+            const newConfirmYes = confirmYes.cloneNode(true);
+            const newConfirmNo = confirmNo.cloneNode(true);
+            confirmYes.replaceWith(newConfirmYes);
+            confirmNo.replaceWith(newConfirmNo);
+            
+            // Adicionar novos event listeners
+            newConfirmYes.onclick = () => {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                callback(true);
+            };
+            newConfirmNo.onclick = () => {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                callback(false);
+            };
+
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function showLoading(message = 'Carregando...') {
+            document.getElementById('loading-message').textContent = message;
+            showView('loading-view');
+        }
+
+        function showLogin() {
+            showView('login-view');
+            currentUser = null;
+            currentRole = null;
+            document.getElementById('user-info').classList.add('hidden');
+            document.getElementById('cart-icon').classList.add('hidden');
+        }
+
+        // ============ FUNÇÕES DO CARRINHO ============
+
+        function openCartModal() {
+            updateCartDisplay();
+            document.getElementById('cart-modal').classList.remove('hidden');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        function addToCart(product) {
+            const existingItem = cart.find(item => item.id === product.id);
+            
+            if (existingItem) {
+                if (existingItem.quantity < product.estoque) {
+                    existingItem.quantity++;
+                } else {
+                    showMessageModal('Estoque Insuficiente', 'Não há mais unidades disponíveis deste produto.');
+                    return;
+                }
+            } else {
+                if (product.estoque > 0) {
+                    cart.push({
+                        ...product,
+                        quantity: 1
+                    });
+                } else {
+                    showMessageModal('Produto Esgotado', 'Este produto está temporariamente fora de estoque.');
+                    return;
+                }
+            }
+            
+            updateCartCount();
+            showMessageModal('Sucesso', 'Produto adicionado ao carrinho!');
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            updateCartDisplay();
+        }
+
+        function updateQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                const newQuantity = item.quantity + change;
+                if (newQuantity > 0 && newQuantity <= item.estoque) {
+                    item.quantity = newQuantity;
+                } else if (newQuantity === 0) {
+                    removeFromCart(productId);
+                    return;
+                }
+            }
+            updateCartCount();
+            updateCartDisplay();
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            const cartCount = document.getElementById('cart-count');
+            const cartIcon = document.getElementById('cart-icon');
+            
+            if (count > 0) {
+                cartCount.textContent = count;
+                cartCount.classList.remove('hidden');
+            } else {
+                cartCount.classList.add('hidden');
+            }
+            
+            // Mostrar ícone do carrinho apenas para adotantes
+            if (currentRole === 'adotante') {
+                cartIcon.classList.remove('hidden');
+            }
+        }
+
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-gray-500 text-center py-4">Carrinho vazio</p>';
+                cartTotal.textContent = 'R$ 0,00';
+                return;
+            }
+            
+            let total = 0;
+            cartItems.innerHTML = '';
+            
+            cart.forEach(item => {
+                const itemTotal = item.preco * item.quantity;
+                total += itemTotal;
+                
+                cartItems.innerHTML += `
+                    <div class="cart-item">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h4 class="font-bold">${item.nome}</h4>
+                                <p class="text-sm text-gray-600">R$ ${item.preco.toFixed(2)} cada</p>
+                                <p class="text-sm text-gray-500">Loja: ${item.loja_nome}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold">R$ ${itemTotal.toFixed(2)}</p>
+                                <div class="quantity-control mt-2">
+                                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
+                                    <span class="quantity-input">${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
+                                </div>
+                                <button class="text-red-500 text-sm mt-1" onclick="removeFromCart('${item.id}')">
+                                    <i class="fas fa-trash mr-1"></i>Remover
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartTotal.textContent = `R$ ${total.toFixed(2)}`;
+        }
+
+        async function checkAdocaoExistente(animalId, adotanteId) {
+            const { data, error } = await supabase
+                .from('adocoes')
+                .select('id')
+                .eq('animal_id', animalId)
+                .eq('adotante_id', adotanteId)
+                .in('status', ['pendente', 'aprovado'])
+                .single();
+
+            return !error && data;
+        }
+
+        async function finalizarCompra() {
+            if (cart.length === 0) {
+                showMessageModal('Carrinho Vazio', 'Adicione produtos ao carrinho antes de finalizar a compra.');
+                return;
+            }
+
+            showLoading('Processando pedido...');
+
+            try {
+                const pedido = new Pedido(currentUser.id, cart);
+                await pedido.salvar();
+
+                // Limpar carrinho
+                cart = [];
+                updateCartCount();
+                closeCartModal();
+
+                showMessageModal(
+                    'Compra Realizada!', 
+                    `🎉 Pedido #${pedido.id.substring(0, 8)} realizado com sucesso!<br><br>
+                     <strong>Total:</strong> R$ ${pedido.total.toFixed(2)}<br>
+                     <strong>Status:</strong> ${pedido.status}<br><br>
+                     Acompanhe seus pedidos na seção "Minhas Compras".`
+                );
+
+                // Recarregar a seção de compras se estiver ativa
+                if (document.getElementById('adotante-compras') && !document.getElementById('adotante-compras').classList.contains('hidden')) {
+                    loadMinhasCompras();
+                }
+
+            } catch (error) {
+                console.error('Erro ao finalizar compra:', error);
+                showMessageModal('Erro', 'Falha ao processar o pedido. Tente novamente.');
+            }
+        }
+
+        // ============ FUNÇÕES DE AVALIAÇÃO ============
+
+        function openRatingModal(productId, productName, lojaName) {
+            currentRatingProductId = productId;
+            
+            document.getElementById('rating-product-info').innerHTML = `
+                <h4 class="font-bold">${productName}</h4>
+                <p class="text-sm text-gray-600">Loja: ${lojaName}</p>
+            `;
+            
+            // Resetar avaliação
+            document.getElementById('rating-value').value = '0';
+            document.getElementById('rating-comment').value = '';
+            resetStars();
+            
+            document.getElementById('rating-modal').classList.remove('hidden');
+        }
+
+        function closeRatingModal() {
+            document.getElementById('rating-modal').classList.add('hidden');
+            currentRatingProductId = null;
+        }
+
+        function setupStarRating() {
+            const stars = document.querySelectorAll('.star');
+            const ratingInput = document.getElementById('rating-value');
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    ratingInput.value = rating;
+                    updateStars(rating);
+                });
+                
+                star.addEventListener('mouseover', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    highlightStars(rating);
+                });
+            });
+            
+            // Reset stars quando mouse sair
+            document.getElementById('star-rating').addEventListener('mouseleave', function() {
+                const currentRating = parseInt(ratingInput.value);
+                updateStars(currentRating);
+            });
+        }
+
+        function updateStars(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                if (starRating <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                if (starRating <= rating) {
+                    star.style.color = '#f59e0b';
+                } else {
+                    star.style.color = '#d1d5db';
+                }
+            });
+        }
+
+        function resetStars() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.classList.remove('active');
+                star.style.color = '#d1d5db';
+            });
+        }
+
+        async function submitRating() {
+            const rating = parseInt(document.getElementById('rating-value').value);
+            const comentario = document.getElementById('rating-comment').value.trim();
+            
+            if (rating === 0) {
+                showMessageModal('Atenção', 'Por favor, selecione uma avaliação com as estrelas.');
+                return;
+            }
+
+            if (!currentRatingProductId) {
+                showMessageModal('Erro', 'Produto não identificado.');
+                return;
+            }
+
+            showLoading('Enviando avaliação...');
+
+            try {
+                const { error } = await supabase
+                    .from('avaliacoes')
+                    .insert([{
+                        produto_id: currentRatingProductId,
+                        adotante_id: currentUser.id,
+                        rating: rating,
+                        comentario: comentario || null
+                    }]);
+
+                if (error) throw error;
+
+                closeRatingModal();
+                showMessageModal('Sucesso', 'Avaliação enviada com sucesso! Obrigado por compartilhar sua experiência.');
+
+            } catch (error) {
+                console.error('Erro ao enviar avaliação:', error);
+                showMessageModal('Erro', 'Falha ao enviar avaliação. Tente novamente.');
+            }
+        }
+
+        async function loadAvaliacoes(produtoId) {
+            const { data: avaliacoes, error } = await supabase
+                .from('avaliacoes')
+                .select(`
+                    *,
+                    adotante:profiles(nome)
+                `)
+                .eq('produto_id', produtoId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erro ao carregar avaliações:', error);
+                return [];
+            }
+
+            return avaliacoes || [];
+        }
+
+        function renderAvaliacoes(avaliacoes) {
+            if (avaliacoes.length === 0) {
+                return '<p class="text-gray-500 text-sm">Nenhuma avaliação ainda.</p>';
+            }
+
+            let html = '';
+            avaliacoes.forEach(avaliacao => {
+                const stars = '★'.repeat(avaliacao.rating) + '☆'.repeat(5 - avaliacao.rating);
+                html += `
+                    <div class="border-b border-gray-200 pb-3 mb-3 last:border-0 last:mb-0">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-medium">${avaliacao.adotante.nome}</span>
+                            <span class="text-yellow-500">${stars}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">${avaliacao.comentario || 'Sem comentário.'}</p>
+                        <p class="text-gray-400 text-xs mt-1">${new Date(avaliacao.created_at).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        // ============ AUTENTICAÇÃO ============
+
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showMessageModal('Erro', 'Por favor, preencha email e senha.');
+                return;
+            }
+
+            showLoading('Fazendo login...');
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    if (error.message.includes('Invalid login credentials')) {
+                        throw new Error('Email ou senha incorretos.');
+                    } else if (error.message.includes('Email not confirmed')) {
+                        showMessageModal(
+                            'Email Não Confirmado',
+                            `📧 <strong>Este email ainda não foi confirmado.</strong><br><br>
+                             Verifique sua caixa de entrada ou clique abaixo para reenviar:<br><br>
+                             <button onclick="resendConfirmation('${email}')" class="btn btn-primary">
+                                 📧 Reenviar Link de Confirmação
+                             </button>`
+                        );
+                        return;
+                    } else {
+                        throw error;
+                    }
+                }
+
+                // Buscar perfil do usuário
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+
+                if (profileError) {
+                    console.error('Erro ao buscar perfil:', profileError);
+                    throw new Error('Erro ao carregar perfil do usuário.');
+                }
+
+                completeLogin(data.user, profile.nome, profile.role, profile.telefone, profile.endereco, profile.sobre, profile.foto_url);
+
+            } catch (error) {
+                console.error('Erro no login:', error);
+                showMessageModal('Erro', 'Falha no login: ' + error.message);
+                showLogin();
+            }
+        }
+
+        async function handleRegister(role) {
+            let nome, email, senha, telefone, endereco, sobre, foto_url;
+
+            if (role === 'adotante') {
+                nome = document.getElementById('reg-adotante-nome').value;
+                email = document.getElementById('reg-adotante-email').value;
+                senha = document.getElementById('reg-adotante-senha').value;
+                telefone = document.getElementById('reg-adotante-telefone').value;
+                endereco = document.getElementById('reg-adotante-endereco').value;
+            } else if (role === 'abrigo') {
+                nome = document.getElementById('reg-abrigo-nome').value;
+                email = document.getElementById('reg-abrigo-email').value;
+                senha = document.getElementById('reg-abrigo-senha').value;
+                telefone = document.getElementById('reg-abrigo-telefone').value;
+                endereco = document.getElementById('reg-abrigo-endereco').value;
+                sobre = document.getElementById('reg-abrigo-sobre').value;
+            } else if (role === 'loja') {
+                nome = document.getElementById('reg-loja-nome').value;
+                email = document.getElementById('reg-loja-email').value;
+                senha = document.getElementById('reg-loja-senha').value;
+                telefone = document.getElementById('reg-loja-telefone').value;
+                endereco = document.getElementById('reg-loja-endereco').value;
+                foto_url = document.getElementById('reg-loja-foto').value;
+                sobre = document.getElementById('reg-loja-sobre').value;
+            }
+
+            if (!nome || !email || !senha) {
+                showMessageModal('Erro', 'Preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            // Validação de email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showMessageModal('Erro', 'Por favor, insira um email válido.');
+                return;
+            }
+
+            // Validação de senha
+            if (senha.length < 6) {
+                showMessageModal('Erro', 'A senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+
+            showLoading('Registrando...');
+
+            try {
+                // Tenta fazer login primeiro (caso o usuário já exista)
+                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: senha
+                });
+
+                if (!loginError) {
+                    // Login bem-sucedido - atualizar perfil
+                    await updateUserProfile(loginData.user.id, nome, role, telefone, endereco, sobre, foto_url);
+                    completeLogin(loginData.user, nome, role, telefone, endereco, sobre, foto_url);
+                    return;
+                }
+
+                // Se login falhou, tentar cadastro
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email: email,
+                    password: senha,
+                    options: {
+                        data: {
+                            name: nome,
+                            role: role
+                        }
+                    }
+                });
+
+                if (signUpError) {
+                    if (signUpError.message.includes('User already registered')) {
+                        showMessageModal('Erro', 'Este email já está cadastrado. Tente fazer login.');
+                        return;
+                    }
+                    throw signUpError;
+                }
+
+                if (signUpData.user) {
+                    // Criar perfil imediatamente
+                    await updateUserProfile(signUpData.user.id, nome, role, telefone, endereco, sobre, foto_url);
+                    
+                    // Tentar login automaticamente (ignorando confirmação de email)
+                    const { data: autoLoginData, error: autoLoginError } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: senha
+                    });
+
+                    if (!autoLoginError) {
+                        completeLogin(autoLoginData.user, nome, role, telefone, endereco, sobre, foto_url);
+                    } else {
+                        // Se não conseguir login automático, mostrar instruções
+                        showMessageModal(
+                            'Quase lá!', 
+                            `Cadastro realizado!<br><br>
+                             <strong>Email:</strong> ${email}<br>
+                             <strong>Senha:</strong> ${senha}<br><br>
+                             Agora tente fazer login normalmente.`
+                        );
+                        showLogin();
+                    }
+                }
+
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                showMessageModal('Erro', 'Falha no cadastro: ' + error.message);
+                showLogin();
+            }
+        }
+
+        // Função auxiliar para atualizar perfil
+        async function updateUserProfile(userId, nome, role, telefone, endereco, sobre, foto_url) {
+            const profileData = {
+                id: userId,
+                nome: nome,
+                role: role,
+                telefone: telefone || null,
+                endereco: endereco || null,
+                sobre: sobre || null,
+                foto_url: foto_url || null
+            };
+
+            const { error } = await supabase
+                .from('profiles')
+                .upsert(profileData, { onConflict: 'id' });
+
+            if (error) {
+                console.warn('Aviso ao criar/atualizar perfil:', error);
+            }
+        }
+
+        // Função para completar o login - CORRIGIDA
+        function completeLogin(user, nome, role, telefone, endereco, sobre, foto_url) {
+            currentUser = {
+                id: user.id,
+                email: user.email,
+                name: nome,
+                role: role,
+                telefone: telefone,
+                endereco: endereco,
+                sobre: sobre,
+                foto_url: foto_url
+            };
+            currentRole = role;
+
+            // CORREÇÃO: Atualizar a interface do usuário
+            document.getElementById('profile-name').textContent = currentUser.name;
+            document.getElementById('user-info').classList.remove('hidden');
+
+            showMessageModal('Sucesso', '🎉 Login realizado com sucesso!');
+
+            if (currentRole === 'adotante') {
+                showAdotanteDashboard();
+            } else if (currentRole === 'abrigo') {
+                showAbrigoDashboard();
+            } else if (currentRole === 'loja') {
+                showLojaDashboard();
+            }
+        }
+
+        async function resendConfirmation(email) {
+            showLoading('Enviando email de confirmação...');
+            
+            try {
+                const { error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: email,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) throw error;
+                
+                showMessageModal(
+                    'Email Reenviado!', 
+                    `📧 <strong>Link de confirmação reenviado!</strong><br><br>
+                     Verifique sua caixa de entrada (e a pasta de spam) do email:<br>
+                     <strong>${email}</strong><br><br>
+                     Se não receber em alguns minutos, tente novamente.`
+                );
+            } catch (error) {
+                console.error('Erro ao reenviar confirmação:', error);
+                showMessageModal(
+                    'Erro', 
+                    `Falha ao reenviar confirmação: ${error.message}<br><br>
+                     Tente fazer login diretamente - o sistema pode confirmar automaticamente.`
+                );
+            }
+        }
+
+        async function handleLogout() {
+            showConfirmModal('Sair', 'Tem certeza que deseja sair?', async (confirmed) => {
+                if (confirmed) {
+                    await supabase.auth.signOut();
+                    showLogin();
+                }
+            });
+        }
+
+        // ============ DASHBOARDS ============
+
+        function showAdotanteDashboard() {
+            console.log('Iniciando dashboard adotante');
+            showView('dashboard-adotante');
+            showAdotanteSection('animais');
+            loadAnimaisDisponiveis();
+            loadLojas();
+            updateCartCount();
+        }
+
+        function showAbrigoDashboard() {
+            console.log('Iniciando dashboard abrigo');
+            showView('dashboard-abrigo');
+            showAbrigoSection('animais');
+            loadMeusAnimais();
+        }
+
+        function showLojaDashboard() {
+            console.log('Iniciando dashboard loja');
+            showView('dashboard-loja');
+            showLojaSection('produtos');
+        }
+
+        // ============ SEÇÕES ============
+
+        function showAdotanteSection(section) {
+            console.log('Mostrando seção adotante:', section);
+            document.getElementById('adotante-animais').classList.add('hidden');
+            document.getElementById('adotante-minhas-adocoes').classList.add('hidden');
+            document.getElementById('adotante-lojas').classList.add('hidden');
+            document.getElementById('adotante-compras').classList.add('hidden');
+            document.getElementById('adotante-chat').classList.add('hidden');
+            
+            document.getElementById(`adotante-${section}`).classList.remove('hidden');
+
+            document.querySelectorAll('#dashboard-adotante .tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (section !== 'chat') {
+                document.getElementById('tab-adotante-chat').classList.add('hidden');
+                document.getElementById(`tab-${section}`).classList.add('active');
+            } else {
+                document.getElementById('tab-adotante-chat').classList.add('active');
+            }
+
+            if (section === 'minhas-adocoes') {
+                loadMinhasAdocoes();
+            } else if (section === 'lojas') {
+                loadLojas();
+            } else if (section === 'compras') {
+                loadMinhasCompras();
+            }
+        }
+
+        function showAbrigoSection(section) {
+            console.log('Mostrando seção abrigo:', section);
+            document.getElementById('abrigo-animais').classList.add('hidden');
+            document.getElementById('abrigo-processos').classList.add('hidden');
+            document.getElementById('abrigo-chat').classList.add('hidden');
+
+            document.getElementById(`abrigo-${section}`).classList.remove('hidden');
+            
+            document.querySelectorAll('#dashboard-abrigo .tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            if (section !== 'chat') {
+                document.getElementById(`tab-${section}`).classList.add('active');
+            } else {
+                document.getElementById('tab-abrigo-chat').classList.add('active');
+            }
+
+            if (section === 'processos') {
+                loadProcessosAdocao();
+            }
+        }
+
+        function showLojaSection(section) {
+            document.getElementById('loja-produtos').classList.add('hidden');
+            document.getElementById('loja-info').classList.add('hidden');
+            document.getElementById('loja-contatos').classList.add('hidden');
+            document.getElementById('loja-pedidos').classList.add('hidden');
+            
+            document.getElementById(`loja-${section}`).classList.remove('hidden');
+
+            document.querySelectorAll('#dashboard-loja .tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`tab-loja-${section}`).classList.add('active');
+
+            if (section === 'produtos') {
+                loadLojaProdutos();
+            } else if (section === 'contatos') {
+                loadLojaContatos();
+            } else if (section === 'info') {
+                loadLojaInfo();
+            } else if (section === 'pedidos') {
+                loadLojaPedidos();
+            }
+        }
+
+        // ============ FUNÇÕES PARA ABRIGO (ANIMAIS) ============
+
+        async function handleAddAnimal() {
+            if (currentRole !== 'abrigo' || !currentUser) return;
+            
+            const nome = document.getElementById('animal-nome').value;
+            const idade = parseInt(document.getElementById('animal-idade').value);
+            const porte = document.getElementById('animal-porte').value;
+            const categoria = document.getElementById('animal-categoria').value;
+            const detalhes = document.getElementById('animal-detalhes').value;
+            const foto_url = document.getElementById('animal-foto').value;
+
+            if (!nome || isNaN(idade) || !porte || !categoria) {
+                showMessageModal('Atenção', 'Preencha Nome, Idade, Porte e Categoria corretamente.');
+                return;
+            }
+
+            const newAnimal = {
+                nome,
+                idade,
+                porte,
+                categoria,
+                detalhes: detalhes || null,
+                foto_url: foto_url || null,
+                abrigo_id: currentUser.id,
+                disponivel: true
+            };
+
+            showLoading('Cadastrando animal...');
+            
+            const { error } = await supabase
+                .from('animais')
+                .insert([newAnimal]);
+
+            showView('dashboard-abrigo');
+
+            if (error) {
+                console.error('Erro ao cadastrar animal:', error);
+                showMessageModal('Erro', 'Falha ao cadastrar o animal.');
+            } else {
+                showMessageModal('Sucesso', 'Animal cadastrado e disponível para adoção!');
+                // Limpar campos
+                ['animal-nome', 'animal-idade', 'animal-porte', 'animal-categoria', 'animal-detalhes', 'animal-foto'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                loadMeusAnimais();
+            }
+        }
+
+        async function loadMeusAnimais() {
+            if (currentRole !== 'abrigo' || !currentUser) return;
+
+            const container = document.getElementById('animais-list');
+            container.innerHTML = '<div class="empty-state col-span-full"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            const { data: animaisList, error } = await supabase
+                .from('animais')
+                .select('*')
+                .eq('abrigo_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            container.innerHTML = '';
+
+            if (error) {
+                console.error('Erro ao carregar meus animais:', error);
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar seus animais.</p></div>';
+                return;
+            }
+
+            if (animaisList.length === 0) {
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-paw"></i><p>Nenhum animal cadastrado ainda.</p></div>';
+            } else {
+                animaisList.forEach(animal => {
+                    container.innerHTML += renderMeuAnimalCard(animal);
+                });
+            }
+        }
+
+        function renderMeuAnimalCard(animal) {
+            const statusBadge = animal.disponivel 
+                ? `<span class="badge badge-success">Disponível</span>`
+                : `<span class="badge badge-error">Indisponível</span>`;
+            
+            return `
+                <div class="animal-card fade-in">
+                    <img src="${animal.foto_url || 'https://via.placeholder.com/300x200?text=Pet'}" alt="${animal.nome}" class="animal-image">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg">${animal.nome}</h4>
+                            <p class="text-gray-600 text-sm">${animal.categoria} - ${animal.porte} (${animal.idade} anos)</p>
+                            <p class="mt-1">${statusBadge}</p>
+                            <p class="text-sm text-gray-600 mt-2">${animal.detalhes || 'Sem detalhes adicionais.'}</p>
+                        </div>
+                        <div class="mt-3 flex space-x-2">
+                            <button class="btn btn-outline btn-sm flex-1" onclick="editAnimal('${animal.id}')">
+                                <i class="fas fa-edit mr-1"></i> Editar
+                            </button>
+                            <button class="btn btn-secondary btn-sm flex-1" onclick="toggleAnimalStatus('${animal.id}', ${!animal.disponivel})">
+                                <i class="fas ${animal.disponivel ? 'fa-pause' : 'fa-play'} mr-1"></i> ${animal.disponivel ? 'Pausar' : 'Ativar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function editAnimal(animalId) {
+            const { data: animal, error } = await supabase
+                .from('animais')
+                .select('*')
+                .eq('id', animalId)
+                .single();
+
+            if (error) {
+                console.error('Erro ao carregar animal:', error);
+                showMessageModal('Erro', 'Não foi possível carregar os dados do animal.');
+                return;
+            }
+
+            editingAnimalId = animalId;
+            
+            // Preencher modal com dados do animal
+            document.getElementById('edit-animal-nome').value = animal.nome;
+            document.getElementById('edit-animal-idade').value = animal.idade;
+            document.getElementById('edit-animal-porte').value = animal.porte;
+            document.getElementById('edit-animal-categoria').value = animal.categoria;
+            document.getElementById('edit-animal-detalhes').value = animal.detalhes || '';
+            document.getElementById('edit-animal-foto').value = animal.foto_url || '';
+            document.getElementById('edit-animal-disponivel').checked = animal.disponivel;
+
+            document.getElementById('edit-animal-modal').classList.remove('hidden');
+        }
+
+        async function saveAnimalChanges() {
+            if (!editingAnimalId) return;
+
+            const nome = document.getElementById('edit-animal-nome').value;
+            const idade = parseInt(document.getElementById('edit-animal-idade').value);
+            const porte = document.getElementById('edit-animal-porte').value;
+            const categoria = document.getElementById('edit-animal-categoria').value;
+            const detalhes = document.getElementById('edit-animal-detalhes').value;
+            const foto_url = document.getElementById('edit-animal-foto').value;
+            const disponivel = document.getElementById('edit-animal-disponivel').checked;
+
+            if (!nome || isNaN(idade) || !porte || !categoria) {
+                showMessageModal('Atenção', 'Preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            showLoading('Salvando alterações...');
+
+            const { error } = await supabase
+                .from('animais')
+                .update({
+                    nome,
+                    idade,
+                    porte,
+                    categoria,
+                    detalhes: detalhes || null,
+                    foto_url: foto_url || null,
+                    disponivel
+                })
+                .eq('id', editingAnimalId);
+
+            document.getElementById('edit-animal-modal').classList.add('hidden');
+            showView('dashboard-abrigo');
+
+            if (error) {
+                console.error('Erro ao atualizar animal:', error);
+                showMessageModal('Erro', 'Falha ao atualizar o animal.');
+            } else {
+                showMessageModal('Sucesso', 'Animal atualizado com sucesso!');
+                loadMeusAnimais();
+            }
+
+            editingAnimalId = null;
+        }
+
+        async function toggleAnimalStatus(animalId, novoStatus) {
+            showLoading('Atualizando status...');
+
+            const { error } = await supabase
+                .from('animais')
+                .update({ disponivel: novoStatus })
+                .eq('id', animalId);
+
+            showView('dashboard-abrigo');
+
+            if (error) {
+                console.error('Erro ao alterar status:', error);
+                showMessageModal('Erro', 'Falha ao alterar status do animal.');
+            } else {
+                showMessageModal('Sucesso', `Animal ${novoStatus ? 'ativado' : 'pausado'} com sucesso!`);
+                loadMeusAnimais();
+            }
+        }
+
+        // ============ FUNÇÕES PARA LOJA (PRODUTOS) ============
+
+        function openProductModal(productId = null) {
+            editingProductId = productId;
+            
+            if (productId) {
+                document.getElementById('product-modal-title').textContent = 'Editar Produto';
+                loadProductData(productId);
+            } else {
+                document.getElementById('product-modal-title').textContent = 'Cadastrar Produto';
+                // Limpar campos
+                ['product-nome', 'product-preco', 'product-categoria', 'product-estoque', 'product-descricao', 'product-foto'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('product-ativo').checked = true;
+            }
+            
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+            editingProductId = null;
+        }
+
+        async function loadProductData(productId) {
+            const { data: product, error } = await supabase
+                .from('produtos')
+                .select('*')
+                .eq('id', productId)
+                .single();
+
+            if (error) {
+                console.error('Erro ao carregar produto:', error);
+                showMessageModal('Erro', 'Não foi possível carregar os dados do produto.');
+                return;
+            }
+
+            document.getElementById('product-nome').value = product.nome;
+            document.getElementById('product-preco').value = product.preco;
+            document.getElementById('product-categoria').value = product.categoria;
+            document.getElementById('product-estoque').value = product.estoque;
+            document.getElementById('product-descricao').value = product.descricao || '';
+            document.getElementById('product-foto').value = product.foto_url || '';
+            document.getElementById('product-ativo').checked = product.ativo;
+        }
+
+        async function saveProduct() {
+            const nome = document.getElementById('product-nome').value;
+            const preco = parseFloat(document.getElementById('product-preco').value);
+            const categoria = document.getElementById('product-categoria').value;
+            const estoque = parseInt(document.getElementById('product-estoque').value);
+            const descricao = document.getElementById('product-descricao').value;
+            const foto_url = document.getElementById('product-foto').value;
+            const ativo = document.getElementById('product-ativo').checked;
+
+            if (!nome || isNaN(preco) || !categoria || isNaN(estoque)) {
+                showMessageModal('Atenção', 'Preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            showLoading('Salvando produto...');
+
+            const productData = {
+                nome,
+                preco,
+                categoria,
+                estoque,
+                descricao: descricao || null,
+                foto_url: foto_url || null,
+                ativo,
+                loja_id: currentUser.id
+            };
+
+            let error;
+            if (editingProductId) {
+                ({ error } = await supabase
+                    .from('produtos')
+                    .update(productData)
+                    .eq('id', editingProductId));
+            } else {
+                ({ error } = await supabase
+                    .from('produtos')
+                    .insert([productData]));
+            }
+
+            closeProductModal();
+            showView('dashboard-loja');
+
+            if (error) {
+                console.error('Erro ao salvar produto:', error);
+                showMessageModal('Erro', 'Falha ao salvar o produto.');
+            } else {
+                showMessageModal('Sucesso', `Produto ${editingProductId ? 'atualizado' : 'cadastrado'} com sucesso!`);
+                loadLojaProdutos();
+            }
+
+            editingProductId = null;
+        }
+
+        async function loadLojaProdutos() {
+            if (currentRole !== 'loja' || !currentUser) return;
+
+            const container = document.getElementById('loja-produtos-list');
+            container.innerHTML = '<div class="empty-state col-span-full"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            const { data: produtos, error } = await supabase
+                .from('produtos')
+                .select('*')
+                .eq('loja_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            container.innerHTML = '';
+
+            if (error) {
+                console.error('Erro ao carregar produtos:', error);
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar produtos.</p></div>';
+                return;
+            }
+
+            if (produtos.length === 0) {
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-box"></i><p>Nenhum produto cadastrado ainda.</p></div>';
+            } else {
+                produtos.forEach(produto => {
+                    container.innerHTML += renderProdutoCard(produto);
+                });
+            }
+        }
+
+        function renderProdutoCard(produto) {
+            const stockClass = produto.estoque === 0 ? 'stock-out' : 
+                              produto.estoque < 10 ? 'stock-low' : 'stock-ok';
+            const stockText = produto.estoque === 0 ? 'ESGOTADO' : 
+                             produto.estoque < 10 ? 'ESTOQUE BAIXO' : 'EM ESTOQUE';
+
+            return `
+                <div class="product-card fade-in">
+                    <img src="${produto.foto_url || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&h=200&fit=crop'}" alt="${produto.nome}" class="product-image">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg">${produto.nome}</h4>
+                            <p class="price-tag mt-1">R$ ${produto.preco.toFixed(2)}</p>
+                            <p class="text-sm text-gray-600 mt-1">${produto.categoria}</p>
+                            <p class="text-sm text-gray-600 mt-2 line-clamp-2">${produto.descricao || 'Sem descrição.'}</p>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="badge ${stockClass} stock-badge">${stockText}</span>
+                                <span class="text-sm text-gray-500">Estoque: ${produto.estoque}</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex space-x-2">
+                            <button class="btn btn-outline btn-sm flex-1" onclick="openProductModal('${produto.id}')">
+                                <i class="fas fa-edit mr-1"></i> Editar
+                            </button>
+                            <button class="btn ${produto.ativo ? 'btn-secondary' : 'btn-primary'} btn-sm flex-1" onclick="toggleProductStatus('${produto.id}', ${!produto.ativo})">
+                                <i class="fas ${produto.ativo ? 'fa-pause' : 'fa-play'} mr-1"></i> ${produto.ativo ? 'Pausar' : 'Ativar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function toggleProductStatus(productId, novoStatus) {
+            showLoading('Atualizando status...');
+
+            const { error } = await supabase
+                .from('produtos')
+                .update({ ativo: novoStatus })
+                .eq('id', productId);
+
+            showView('dashboard-loja');
+
+            if (error) {
+                console.error('Erro ao alterar status:', error);
+                showMessageModal('Erro', 'Falha ao alterar status do produto.');
+            } else {
+                showMessageModal('Sucesso', `Produto ${novoStatus ? 'ativado' : 'pausado'} com sucesso!`);
+                loadLojaProdutos();
+            }
+        }
+
+        async function loadLojaContatos() {
+            const container = document.getElementById('loja-contatos-list');
+            container.innerHTML = '<div class="empty-state"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            try {
+                const { data: contatos, error } = await supabase
+                    .from('contatos_lojas')
+                    .select(`
+                        *,
+                        adotante:profiles!contatos_lojas_adotante_id_fkey(nome, telefone)
+                    `)
+                    .eq('loja_id', currentUser.id)
+                    .order('data_contato', { ascending: false });
+
+                if (error) throw error;
+
+                container.innerHTML = '';
+
+                if (!contatos || contatos.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope"></i><p>Nenhum contato recebido ainda.</p></div>';
+                } else {
+                    contatos.forEach(contato => {
+                        container.innerHTML += `
+                            <div class="card p-4 mb-4 fade-in">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-lg">${contato.adotante.nome}</h4>
+                                        <p class="text-sm text-gray-600">${contato.adotante.telefone || 'Telefone não informado'}</p>
+                                    </div>
+                                    <span class="text-sm text-gray-500">${new Date(contato.data_contato).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                                <p class="text-gray-700 mt-2">${contato.mensagem}</p>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar contatos:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar contatos.</p></div>';
+            }
+        }
+
+        async function loadLojaInfo() {
+            const infoContainer = document.getElementById('loja-info-details');
+            const statsContainer = document.getElementById('loja-stats');
+
+            // Informações da loja
+            infoContainer.innerHTML = `
+                <p class="text-gray-600 mb-2"><strong>Nome:</strong> ${currentUser.name}</p>
+                <p class="text-gray-600 mb-2"><strong>Email:</strong> ${currentUser.email}</p>
+                <p class="text-gray-600 mb-2"><strong>Telefone:</strong> ${currentUser.telefone || 'Não informado'}</p>
+                <p class="text-gray-600 mb-2"><strong>Endereço:</strong> ${currentUser.endereco || 'Não informado'}</p>
+                <p class="text-gray-600"><strong>Sobre:</strong> ${currentUser.sobre || 'Sem descrição.'}</p>
+            `;
+
+            // Estatísticas
+            const { count: totalProdutos } = await supabase
+                .from('produtos')
+                .select('*', { count: 'exact', head: true })
+                .eq('loja_id', currentUser.id);
+
+            const { count: produtosAtivos } = await supabase
+                .from('produtos')
+                .select('*', { count: 'exact', head: true })
+                .eq('loja_id', currentUser.id)
+                .eq('ativo', true);
+
+            const { count: totalContatos } = await supabase
+                .from('contatos_lojas')
+                .select('*', { count: 'exact', head: true })
+                .eq('loja_id', currentUser.id);
+
+            statsContainer.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-4 bg-white rounded-lg">
+                        <p class="text-2xl font-bold text-primary-color">${totalProdutos || 0}</p>
+                        <p class="text-sm text-gray-600">Total de Produtos</p>
+                    </div>
+                    <div class="text-center p-4 bg-white rounded-lg">
+                        <p class="text-2xl font-bold text-green-600">${produtosAtivos || 0}</p>
+                        <p class="text-sm text-gray-600">Produtos Ativos</p>
+                    </div>
+                    <div class="text-center p-4 bg-white rounded-lg">
+                        <p class="text-2xl font-bold text-blue-600">${totalContatos || 0}</p>
+                        <p class="text-sm text-gray-600">Contatos Recebidos</p>
+                    </div>
+                    <div class="text-center p-4 bg-white rounded-lg">
+                        <p class="text-2xl font-bold text-purple-600">${currentUser.name.split(' ')[0]}</p>
+                        <p class="text-sm text-gray-600">Sua Loja</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============ FUNÇÕES ADICIONAIS ============
+
+        async function loadAnimaisDisponiveis() {
+            if (currentRole !== 'adotante' || !currentUser) return;
+
+            const container = document.getElementById('animais-disponiveis');
+            container.innerHTML = '<div class="empty-state col-span-full"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando animais...</p></div>';
+
+            const categoria = document.getElementById('filter-categoria').value;
+            const porte = document.getElementById('filter-porte').value;
+
+            let query = supabase
+                .from('animais')
+                .select('*, abrigo:profiles(nome, telefone, endereco)')
+                .eq('disponivel', true)
+                .order('created_at', { ascending: false });
+
+            if (categoria) {
+                query = query.eq('categoria', categoria);
+            }
+            if (porte) {
+                query = query.eq('porte', porte);
+            }
+
+            const { data: animais, error } = await query;
+
+            container.innerHTML = '';
+
+            if (error) {
+                console.error('Erro ao carregar animais:', error);
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar animais disponíveis.</p></div>';
+                return;
+            }
+
+            if (animais.length === 0) {
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-paw"></i><p>Nenhum animal disponível no momento.</p></div>';
+            } else {
+                animais.forEach(animal => {
+                    container.innerHTML += `
+                        <div class="animal-card fade-in">
+                            <img src="${animal.foto_url || 'https://via.placeholder.com/300x200?text=Pet'}" alt="${animal.nome}" class="animal-image">
+                            <div class="p-4 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-lg">${animal.nome}</h4>
+                                    <p class="text-gray-600 text-sm">${animal.categoria} - ${animal.porte} (${animal.idade} anos)</p>
+                                    <p class="text-sm text-gray-600 mt-2">${animal.detalhes || 'Sem detalhes adicionais.'}</p>
+                                    <p class="text-xs text-gray-500 mt-2"><i class="fas fa-home mr-1"></i> ${animal.abrigo.nome}</p>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-primary w-full" onclick="solicitarAdocao('${animal.id}')">
+                                        <i class="fas fa-heart mr-2"></i>Quero Adotar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        async function solicitarAdocao(animalId) {
+            try {
+                showConfirmModal(
+                    'Solicitar Adoção', 
+                    'Tem certeza que deseja solicitar a adoção deste animal?', 
+                    async (confirmed) => {
+                        if (!confirmed) return;
+
+                        showLoading('Processando solicitação...');
+
+                        try {
+                            const adocao = await AdocaoManager.solicitarAdocao(animalId, currentUser.id);
+                            
+                            showView('dashboard-adotante');
+                            showMessageModal(
+                                'Sucesso', 
+                                `Solicitação de adoção #${adocao.id.substring(0, 8)} enviada com sucesso! O abrigo entrará em contato em breve.`
+                            );
+                            
+                            loadAnimaisDisponiveis();
+
+                        } catch (error) {
+                            console.error('Erro na adoção:', error);
+                            showMessageModal('Erro', error.message);
+                        }
+                    }
+                );
+
+            } catch (error) {
+                console.error('Erro ao iniciar processo:', error);
+                showMessageModal('Erro', 'Falha ao iniciar processo de adoção.');
+            }
+        }
+
+        async function loadMinhasAdocoes() {
+            if (currentRole !== 'adotante' || !currentUser) return;
+
+            const container = document.getElementById('minhas-adocoes-list');
+            container.innerHTML = '<div class="empty-state"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            try {
+                const adocoes = await Adocao.carregarPorAdotante(currentUser.id);
+
+                container.innerHTML = '';
+
+                if (adocoes.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-heart"></i><p>Você ainda não iniciou nenhum processo de adoção.</p></div>';
+                } else {
+                    adocoes.forEach(adocao => {
+                        container.innerHTML += adocao.renderCard();
+                    });
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar adoções:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar suas adoções.</p></div>';
+            }
+        }
+
+        async function loadLojas() {
+            if (currentRole !== 'adotante' || !currentUser) return;
+
+            const container = document.getElementById('lojas-list');
+            container.innerHTML = '<div class="empty-state col-span-full"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando lojas...</p></div>';
+
+            const { data: lojas, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('role', 'loja')
+                .order('nome', { ascending: true });
+
+            container.innerHTML = '';
+
+            if (error) {
+                console.error('Erro ao carregar lojas:', error);
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar lojas parceiras.</p></div>';
+                return;
+            }
+
+            if (lojas.length === 0) {
+                container.innerHTML = '<div class="empty-state col-span-full"><i class="fas fa-store"></i><p>Nenhuma loja parceira cadastrada.</p></div>';
+            } else {
+                lojas.forEach(loja => {
+                    container.innerHTML += `
+                        <div class="card fade-in">
+                            <img src="${loja.foto_url || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=300&h=200&fit=crop'}" 
+                                 alt="${loja.nome}" 
+                                 class="w-full h-32 object-cover">
+                            <div class="p-4">
+                                <h4 class="font-bold text-lg">${loja.nome}</h4>
+                                <p class="text-gray-600 text-sm mt-1">${loja.sobre || 'Loja parceira PetMatch+'}</p>
+                                <div class="mt-3 space-y-2">
+                                    ${loja.telefone ? `<p class="text-sm text-gray-600"><i class="fas fa-phone mr-2"></i>${loja.telefone}</p>` : ''}
+                                    ${loja.endereco ? `<p class="text-sm text-gray-600"><i class="fas fa-map-marker-alt mr-2"></i>${loja.endereco}</p>` : ''}
+                                </div>
+                                <button class="btn btn-secondary w-full mt-4" onclick="verProdutosLoja('${loja.id}', '${loja.nome}')">
+                                    <i class="fas fa-box mr-2"></i>Ver Produtos
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        async function verProdutosLoja(lojaId, lojaNome) {
+            showLoading('Carregando produtos...');
+
+            const { data: produtos, error } = await supabase
+                .from('produtos')
+                .select('*')
+                .eq('loja_id', lojaId)
+                .eq('ativo', true)
+                .gt('estoque', 0)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erro ao carregar produtos da loja:', error);
+                showMessageModal('Erro', 'Não foi possível carregar os produtos desta loja.');
+                return;
+            }
+
+            let produtosHtml = '';
+            if (produtos.length === 0) {
+                produtosHtml = '<p class="text-gray-500 text-center py-8">Esta loja ainda não possui produtos disponíveis.</p>';
+            } else {
+                produtosHtml = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+                produtos.forEach(produto => {
+                    produtosHtml += renderProdutoCardAdotante(produto, lojaNome, lojaId);
+                });
+                produtosHtml += '</div>';
+            }
+
+            showMessageModal(
+                `Produtos - ${lojaNome}`,
+                `
+                <div class="max-h-96 overflow-y-auto">
+                    ${produtosHtml}
+                </div>
+                `
+            );
+        }
+
+        function renderProdutoCardAdotante(produto, lojaNome, lojaId) {
+            const stockClass = produto.estoque === 0 ? 'stock-out' : 
+                              produto.estoque < 10 ? 'stock-low' : 'stock-ok';
+            const stockText = produto.estoque === 0 ? 'ESGOTADO' : 
+                             produto.estoque < 10 ? 'ESTOQUE BAIXO' : 'EM ESTOQUE';
+
+            return `
+                <div class="product-card fade-in">
+                    <img src="${produto.foto_url || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&h=200&fit=crop'}" alt="${produto.nome}" class="product-image">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg">${produto.nome}</h4>
+                            <p class="price-tag mt-1">R$ ${produto.preco.toFixed(2)}</p>
+                            <p class="text-sm text-gray-600 mt-1">${produto.categoria}</p>
+                            <p class="text-sm text-gray-600 mt-2 line-clamp-2">${produto.descricao || 'Sem descrição.'}</p>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="badge ${stockClass} stock-badge">${stockText}</span>
+                                <span class="text-sm text-gray-500">Estoque: ${produto.estoque}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2"><i class="fas fa-store mr-1"></i> ${lojaNome}</p>
+                        </div>
+                        <div class="mt-3 flex space-x-2">
+                            <button class="btn btn-primary btn-sm flex-1" onclick="addToCart({
+                                id: '${produto.id}',
+                                nome: '${produto.nome.replace(/'/g, "\\'")}',
+                                preco: ${produto.preco},
+                                estoque: ${produto.estoque},
+                                loja_id: '${lojaId}',
+                                loja_nome: '${lojaNome.replace(/'/g, "\\'")}'
+                            }); hideMessageModal()">
+                                <i class="fas fa-cart-plus mr-1"></i> Comprar
+                            </button>
+                            <button class="btn btn-outline btn-sm flex-1" onclick="verDetalhesProduto('${produto.id}')">
+                                <i class="fas fa-info mr-1"></i> Detalhes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function verDetalhesProduto(produtoId) {
+            const { data: produto, error } = await supabase
+                .from('produtos')
+                .select('*, loja:profiles(nome)')
+                .eq('id', produtoId)
+                .single();
+
+            if (error) {
+                console.error('Erro ao carregar produto:', error);
+                showMessageModal('Erro', 'Não foi possível carregar os detalhes do produto.');
+                return;
+            }
+
+            const avaliacoes = await loadAvaliacoes(produtoId);
+            const avaliacoesHtml = renderAvaliacoes(avaliacoes);
+
+            showMessageModal(
+                `Detalhes: ${produto.nome}`,
+                `
+                <div class="text-center mb-4">
+                    <img src="${produto.foto_url || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&h=200&fit=crop'}" 
+                         alt="${produto.nome}" 
+                         class="w-48 h-48 object-cover mx-auto rounded-lg">
+                </div>
+                <div class="space-y-2 mb-4">
+                    <p><strong>Preço:</strong> R$ ${produto.preco.toFixed(2)}</p>
+                    <p><strong>Categoria:</strong> ${produto.categoria}</p>
+                    <p><strong>Estoque:</strong> ${produto.estoque} unidades</p>
+                    <p><strong>Loja:</strong> ${produto.loja.nome}</p>
+                    <p><strong>Descrição:</strong> ${produto.descricao || 'Sem descrição.'}</p>
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-bold mb-2">Avaliações</h4>
+                    <div class="max-h-40 overflow-y-auto">
+                        ${avaliacoesHtml}
+                    </div>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                    <button class="btn btn-primary flex-1" onclick="addToCart({
+                        id: '${produto.id}',
+                        nome: '${produto.nome.replace(/'/g, "\\'")}',
+                        preco: ${produto.preco},
+                        estoque: ${produto.estoque},
+                        loja_id: '${produto.loja_id}',
+                        loja_nome: '${produto.loja.nome.replace(/'/g, "\\'")}'
+                    }); hideMessageModal()">
+                        <i class="fas fa-cart-plus mr-1"></i> Comprar
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="openRatingModal('${produto.id}', '${produto.nome.replace(/'/g, "\\'")}', '${produto.loja.nome.replace(/'/g, "\\'")}'); hideMessageModal()">
+                        <i class="fas fa-star mr-1"></i> Avaliar
+                    </button>
+                </div>
+                `
+            );
+        }
+
+        async function contatarLoja(lojaId) {
+            const mensagem = prompt('Digite sua mensagem para a loja:');
+            if (!mensagem) return;
+
+            showLoading('Enviando mensagem...');
+
+            const { error } = await supabase
+                .from('contatos_lojas')
+                .insert([{
+                    adotante_id: currentUser.id,
+                    loja_id: lojaId,
+                    mensagem: mensagem
+                }]);
+
+            if (error) {
+                console.error('Erro ao enviar mensagem:', error);
+                showMessageModal('Erro', 'Falha ao enviar mensagem para a loja.');
+            } else {
+                showMessageModal('Sucesso', 'Mensagem enviada com sucesso! A loja entrará em contato em breve.');
+            }
+        }
+
+        async function loadMinhasCompras() {
+            if (currentRole !== 'adotante' || !currentUser) return;
+
+            const container = document.getElementById('minhas-compras-list');
+            container.innerHTML = '<div class="empty-state"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            try {
+                const pedidos = await Pedido.carregarPorAdotante(currentUser.id);
+
+                container.innerHTML = '';
+
+                if (!pedidos || pedidos.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-bag"></i><p>Nenhuma compra realizada ainda.</p></div>';
+                } else {
+                    pedidos.forEach(pedido => {
+                        const statusMap = {
+                            'pendente': { class: 'badge-warning', text: 'Pendente' },
+                            'processando': { class: 'badge-info', text: 'Processando' },
+                            'enviado': { class: 'badge-success', text: 'Enviado' },
+                            'entregue': { class: 'badge-success', text: 'Entregue' },
+                            'cancelado': { class: 'badge-error', text: 'Cancelado' }
+                        };
+                        
+                        const statusInfo = statusMap[pedido.status] || statusMap.pendente;
+
+                        let itensHtml = '';
+                        if (pedido.itens && pedido.itens.length > 0) {
+                            pedido.itens.forEach(item => {
+                                const itemTotal = item.quantidade * item.preco_unitario;
+                                itensHtml += `
+                                    <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                                        <div class="flex items-center space-x-3">
+                                            <img src="${item.produto?.foto_url || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&h=200&fit=crop'}" 
+                                                 alt="${item.produto?.nome || 'Produto'}" 
+                                                 class="w-10 h-10 rounded object-cover">
+                                            <div>
+                                                <p class="font-medium">${item.produto?.nome || 'Produto não encontrado'}</p>
+                                                <p class="text-sm text-gray-500">${item.produto?.categoria || ''}</p>
+                                                <p class="text-xs text-gray-400">Loja: ${item.loja?.nome || 'Loja não encontrada'}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-medium">R$ ${itemTotal.toFixed(2)}</p>
+                                            <p class="text-sm text-gray-500">${item.quantidade} x R$ ${item.preco_unitario.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            itensHtml = '<p class="text-gray-500 text-center py-4">Nenhum item encontrado neste pedido.</p>';
+                        }
+
+                        container.innerHTML += `
+                            <div class="card p-4 mb-4 fade-in">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h4 class="font-bold text-lg">Pedido #${pedido.id.substring(0, 8)}</h4>
+                                        <p class="text-gray-600">Realizado em: ${new Date(pedido.created_at).toLocaleDateString('pt-BR')}</p>
+                                    </div>
+                                    <span class="badge ${statusInfo.class}">${statusInfo.text}</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    ${itensHtml}
+                                </div>
+                                
+                                <div class="flex justify-between items-center border-t border-gray-200 pt-3">
+                                    <span class="font-bold text-lg">Total: R$ ${pedido.total.toFixed(2)}</span>
+                                    ${pedido.status === 'entregue' ? `
+                                        <button class="btn btn-outline btn-sm" onclick="avaliarPedido('${pedido.id}')">
+                                            <i class="fas fa-star mr-1"></i> Avaliar Produtos
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar compras:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar suas compras.</p></div>';
+            }
+        }
+
+        async function avaliarPedido(pedidoId) {
+            try {
+                const { data: itens, error } = await supabase
+                    .from('itens_pedido')
+                    .select(`
+                        produto:produtos(id, nome),
+                        loja:profiles(nome)
+                    `)
+                    .eq('pedido_id', pedidoId);
+
+                if (error) throw error;
+
+                if (!itens || itens.length === 0) {
+                    showMessageModal('Erro', 'Não foi possível carregar os produtos deste pedido.');
+                    return;
+                }
+
+                let avaliacoesHtml = '';
+                itens.forEach(item => {
+                    if (item.produto) {
+                        avaliacoesHtml += `
+                            <div class="border-b border-gray-200 pb-3 mb-3">
+                                <h4 class="font-bold">${item.produto.nome}</h4>
+                                <p class="text-sm text-gray-600">Loja: ${item.loja?.nome || 'Loja não encontrada'}</p>
+                                <button class="btn btn-secondary btn-sm mt-2" 
+                                        onclick="openRatingModal('${item.produto.id}', '${item.produto.nome.replace(/'/g, "\\'")}', '${(item.loja?.nome || 'Loja').replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-star mr-1"></i> Avaliar Produto
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+
+                showMessageModal(
+                    'Avaliar Produtos do Pedido',
+                    `
+                    <p class="mb-4">Avalie os produtos do seu pedido:</p>
+                    <div class="max-h-60 overflow-y-auto">
+                        ${avaliacoesHtml || '<p class="text-gray-500">Nenhum produto encontrado para avaliação.</p>'}
+                    </div>
+                    `
+                );
+            } catch (error) {
+                console.error('Erro ao carregar produtos do pedido:', error);
+                showMessageModal('Erro', 'Não foi possível carregar os produtos deste pedido.');
+            }
+        }
+
+        async function loadProcessosAdocao() {
+            if (currentRole !== 'abrigo' || !currentUser) return;
+
+            const container = document.getElementById('processos-list');
+            container.innerHTML = '<div class="empty-state"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            try {
+                const processos = await Adocao.carregarPorAbrigo(currentUser.id);
+
+                container.innerHTML = '';
+
+                if (!processos || processos.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-list-alt"></i><p>Nenhum processo de adoção encontrado.</p></div>';
+                    return;
+                }
+
+                // Agrupar por adotante
+                const processosPorAdotante = {};
+                processos.forEach(processo => {
+                    const adotanteId = processo.adotante_id;
+                    if (!processosPorAdotante[adotanteId]) {
+                        processosPorAdotante[adotanteId] = {
+                            adotante: processo.adotante,
+                            processos: []
+                        };
+                    }
+                    processosPorAdotante[adotanteId].processos.push(processo);
+                });
+
+                // Renderizar por adotante
+                Object.values(processosPorAdotante).forEach(grupo => {
+                    container.innerHTML += `
+                        <div class="card p-4 mb-4 fade-in">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-bold text-lg">${grupo.adotante.nome}</h4>
+                                    <p class="text-gray-600">${grupo.adotante.email}</p>
+                                    <p class="text-sm text-gray-500">${grupo.adotante.telefone || 'Telefone não informado'}</p>
+                                    <p class="text-sm text-gray-500">${grupo.adotante.endereco || 'Endereço não informado'}</p>
+                                </div>
+                                <span class="badge badge-info">${grupo.processos.length} processo(s)</span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                ${grupo.processos.map(processo => processo.renderCard()).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar processos:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar processos de adoção.</p></div>';
+            }
+        }
+
+        // ============ FUNÇÕES PARA LOJA ENTREGAR PEDIDOS ============
+
+        async function loadLojaPedidos() {
+            if (currentRole !== 'loja' || !currentUser) return;
+
+            const container = document.getElementById('loja-pedidos-list');
+            container.innerHTML = '<div class="empty-state"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando...</p></div>';
+
+            try {
+                const pedidos = await Pedido.carregarPorLoja(currentUser.id);
+
+                container.innerHTML = '';
+
+                if (!pedidos || pedidos.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-bag"></i><p>Nenhum pedido recebido ainda.</p></div>';
+                } else {
+                    // Agrupar por adotante
+                    const pedidosPorAdotante = {};
+                    pedidos.forEach(pedido => {
+                        const adotanteId = pedido.adotante_id;
+                        if (!pedidosPorAdotante[adotanteId]) {
+                            pedidosPorAdotante[adotanteId] = {
+                                adotante: pedido.adotante,
+                                pedidos: []
+                            };
+                        }
+                        pedidosPorAdotante[adotanteId].pedidos.push(pedido);
+                    });
+
+                    // Renderizar por adotante
+                    Object.values(pedidosPorAdotante).forEach(grupo => {
+                        container.innerHTML += `
+                            <div class="card p-4 mb-4 fade-in">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h4 class="font-bold text-lg">${grupo.adotante.nome}</h4>
+                                        <p class="text-gray-600">${grupo.adotante.email}</p>
+                                        <p class="text-sm text-gray-500">Endereço: ${grupo.adotante.endereco || 'Não informado'}</p>
+                                    </div>
+                                    <span class="badge badge-info">${grupo.pedidos.length} pedido(s)</span>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    ${grupo.pedidos.map(pedido => {
+                                        const statusMap = {
+                                            'pendente': { class: 'badge-warning', text: 'Pendente' },
+                                            'processando': { class: 'badge-info', text: 'Processando' },
+                                            'enviado': { class: 'badge-success', text: 'Enviado' },
+                                            'entregue': { class: 'badge-success', text: 'Entregue' },
+                                            'cancelado': { class: 'badge-error', text: 'Cancelado' }
+                                        };
+                                        
+                                        const statusInfo = statusMap[pedido.status] || statusMap.pendente;
+
+                                        // Calcular total dos itens desta loja
+                                        const itensDaLoja = pedido.itens?.filter(item => 
+                                            item.produto && item.produto.nome
+                                        ) || [];
+                                        
+                                        const totalDaLoja = itensDaLoja.reduce((total, item) => 
+                                            total + (item.quantidade * item.preco_unitario), 0
+                                        );
+
+                                        let actionButtons = '';
+                                        
+                                        switch(pedido.status) {
+                                            case 'pendente':
+                                                actionButtons = `
+                                                    <button class="btn btn-info btn-sm flex-1" onclick="autorizarEntrega('${pedido.id}')">
+                                                        <i class="fas fa-shipping-fast mr-1"></i> Enviar
+                                                    </button>
+                                                    <button class="btn btn-error btn-sm flex-1" onclick="cancelarPedidoLoja('${pedido.id}')">
+                                                        <i class="fas fa-times mr-1"></i> Cancelar
+                                                    </button>
+                                                `;
+                                                break;
+                                            case 'enviado':
+                                                actionButtons = `
+                                                    <button class="btn btn-success btn-sm w-full" onclick="entregarPedido('${pedido.id}')">
+                                                        <i class="fas fa-check mr-1"></i> Confirmar Entrega
+                                                    </button>
+                                                `;
+                                                break;
+                                            case 'entregue':
+                                                actionButtons = `
+                                                    <div class="text-center text-sm text-green-600">
+                                                        <i class="fas fa-check-circle mr-1"></i>
+                                                        Entregue em: ${new Date(pedido.data_entrega).toLocaleDateString('pt-BR')}
+                                                    </div>
+                                                `;
+                                                break;
+                                            default:
+                                                actionButtons = '';
+                                        }
+
+                                        return `
+                                            <div class="border border-gray-200 rounded-lg p-3">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h5 class="font-bold">Pedido #${pedido.id.substring(0, 8)}</h5>
+                                                        <p class="text-sm text-gray-600">Realizado em: ${new Date(pedido.created_at).toLocaleDateString('pt-BR')}</p>
+                                                    </div>
+                                                    <span class="badge ${statusInfo.class}">${statusInfo.text}</span>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <h6 class="font-medium mb-2">Itens deste pedido:</h6>
+                                                    ${itensDaLoja.map(item => `
+                                                        <div class="flex justify-between items-center text-sm py-1 border-b border-gray-100 last:border-0">
+                                                            <span>${item.produto.nome} (${item.quantidade}x)</span>
+                                                            <span>R$ ${(item.quantidade * item.preco_unitario).toFixed(2)}</span>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                                
+                                                <div class="flex justify-between items-center mb-3">
+                                                    <span class="font-medium">Total: R$ ${totalDaLoja.toFixed(2)}</span>
+                                                </div>
+                                                
+                                                <div class="flex space-x-2">
+                                                    ${actionButtons}
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar pedidos.</p></div>';
+            }
+        }
+
+        async function autorizarEntrega(pedidoId) {
+            showConfirmModal(
+                'Autorizar Entrega', 
+                'Tem certeza que deseja autorizar a entrega deste pedido? Esta ação marcará o pedido como "enviado".',
+                async (confirmed) => {
+                    if (!confirmed) return;
+
+                    showLoading('Autorizando entrega...');
+
+                    try {
+                        const { error } = await supabase
+                            .from('pedidos')
+                            .update({ 
+                                status: 'enviado',
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', pedidoId);
+
+                        if (error) throw error;
+
+                        showMessageModal('Sucesso', 'Entrega autorizada! O pedido foi marcado como "enviado".');
+                        loadLojaPedidos();
+
+                    } catch (error) {
+                        console.error('Erro ao autorizar entrega:', error);
+                        showMessageModal('Erro', 'Falha ao autorizar entrega.');
+                    }
+                }
+            );
+        }
+
+        async function entregarPedido(pedidoId) {
+            showConfirmModal(
+                'Confirmar Entrega', 
+                'Tem certeza que deseja marcar este pedido como entregue? Esta ação subtrairá os itens do estoque.',
+                async (confirmed) => {
+                    if (!confirmed) return;
+
+                    showLoading('Processando entrega...');
+
+                    try {
+                        // 1. Buscar os itens do pedido
+                        const { data: itensPedido, error: itensError } = await supabase
+                            .from('itens_pedido')
+                            .select('*')
+                            .eq('pedido_id', pedidoId);
+
+                        if (itensError) throw itensError;
+
+                        if (!itensPedido || itensPedido.length === 0) {
+                            throw new Error('Nenhum item encontrado neste pedido.');
+                        }
+
+                        // 2. Verificar estoque antes de processar
+                        for (const item of itensPedido) {
+                            const { data: produto, error: produtoError } = await supabase
+                                .from('produtos')
+                                .select('estoque, nome')
+                                .eq('id', item.produto_id)
+                                .single();
+
+                            if (produtoError) throw produtoError;
+
+                            if (produto.estoque < item.quantidade) {
+                                throw new Error(`Estoque insuficiente para ${produto.nome}. Disponível: ${produto.estoque}, Solicitado: ${item.quantidade}`);
+                            }
+                        }
+
+                        // 3. Atualizar estoque dos produtos
+                        for (const item of itensPedido) {
+                            const { data: produto } = await supabase
+                                .from('produtos')
+                                .select('estoque')
+                                .eq('id', item.produto_id)
+                                .single();
+
+                            if (produto) {
+                                const novoEstoque = produto.estoque - item.quantidade;
+                                const { error: updateError } = await supabase
+                                    .from('produtos')
+                                    .update({ 
+                                        estoque: Math.max(0, novoEstoque),
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .eq('id', item.produto_id);
+
+                                if (updateError) throw updateError;
+                            }
+                        }
+
+                        // 4. Atualizar status do pedido para "entregue"
+                        const { error: pedidoError } = await supabase
+                            .from('pedidos')
+                            .update({ 
+                                status: 'entregue',
+                                data_entrega: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', pedidoId);
+
+                        if (pedidoError) throw pedidoError;
+
+                        // 5. Mostrar confirmação
+                        showMessageModal(
+                            'Entrega Confirmada!', 
+                            `✅ Pedido #${pedidoId.substring(0, 8)} marcado como entregue com sucesso!<br><br>
+                             O estoque dos produtos foi atualizado automaticamente.`
+                        );
+
+                        // 6. Recarregar a lista de pedidos
+                        loadLojaPedidos();
+
+                    } catch (error) {
+                        console.error('Erro ao processar entrega:', error);
+                        showMessageModal('Erro', `Falha ao processar entrega: ${error.message}`);
+                    }
+                }
+            );
+        }
+
+        async function cancelarPedidoLoja(pedidoId) {
+            showConfirmModal(
+                'Cancelar Pedido', 
+                'Tem certeza que deseja cancelar este pedido? Esta ação não pode ser desfeita.',
+                async (confirmed) => {
+                    if (!confirmed) return;
+
+                    showLoading('Cancelando pedido...');
+
+                    try {
+                        const { error } = await supabase
+                            .from('pedidos')
+                            .update({ 
+                                status: 'cancelado',
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', pedidoId);
+
+                        if (error) throw error;
+
+                        showMessageModal('Sucesso', 'Pedido cancelado com sucesso!');
+                        loadLojaPedidos();
+
+                    } catch (error) {
+                        console.error('Erro ao cancelar pedido:', error);
+                        showMessageModal('Erro', 'Falha ao cancelar pedido.');
+                    }
+                }
+            );
+        }
+
+        async function abrirChatAdocao(adocaoId) {
+            currentChatAdocaoId = adocaoId;
+            
+            // Carregar mensagens existentes
+            await carregarMensagensChat(adocaoId);
+            
+            // Mostrar chat
+            if (currentRole === 'adotante') {
+                showAdotanteSection('chat');
+                document.getElementById('adotante-chat-title').textContent = 'Chat da Adoção';
+            } else if (currentRole === 'abrigo') {
+                showAbrigoSection('chat');
+                document.getElementById('abrigo-chat-title').textContent = 'Chat da Adoção';
+            }
+        }
+
+        async function carregarMensagensChat(adocaoId) {
+            const messagesContainer = currentRole === 'adotante' 
+                ? document.getElementById('adotante-chat-messages')
+                : document.getElementById('abrigo-chat-messages');
+
+            messagesContainer.innerHTML = '<div class="text-center py-4"><div class="loading-spinner mx-auto mb-2"></div><p>Carregando mensagens...</p></div>';
+
+            const { data: mensagens, error } = await supabase
+                .from('mensagens')
+                .select('*, remetente:profiles(nome)')
+                .eq('adocao_id', adocaoId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error('Erro ao carregar mensagens:', error);
+                messagesContainer.innerHTML = '<div class="text-center py-4 text-red-500">Erro ao carregar mensagens.</div>';
+                return;
+            }
+
+            messagesContainer.innerHTML = '';
+
+            if (mensagens.length === 0) {
+                messagesContainer.innerHTML = '<div class="text-center py-4 text-gray-500">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>';
+            } else {
+                mensagens.forEach(mensagem => {
+                    const isSelf = mensagem.remetente_id === currentUser.id;
+                    messagesContainer.innerHTML += `
+                        <div class="chat-message ${isSelf ? 'self' : 'other'} fade-in">
+                            <div>
+                                <p>${mensagem.mensagem}</p>
+                                <span>${mensagem.remetente.nome} • ${new Date(mensagem.created_at).toLocaleString('pt-BR')}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function enviarMensagemChat() {
+            const input = currentRole === 'adotante' 
+                ? document.getElementById('adotante-chat-input')
+                : document.getElementById('abrigo-chat-input');
+            
+            const message = input.value.trim();
+            
+            if (!message || !currentChatAdocaoId) return;
+
+            showLoading('Enviando mensagem...');
+
+            const { error } = await supabase
+                .from('mensagens')
+                .insert([{
+                    adocao_id: currentChatAdocaoId,
+                    remetente_id: currentUser.id,
+                    mensagem: message
+                }]);
+
+            if (error) {
+                console.error('Erro ao enviar mensagem:', error);
+                showMessageModal('Erro', 'Falha ao enviar mensagem.');
+            } else {
+                input.value = '';
+                await carregarMensagensChat(currentChatAdocaoId);
+            }
+        }
+
+        // ============ INICIALIZAÇÃO E EVENT LISTENERS ============
+
+        function initializeApp() {
+            console.log('Aplicação PetMatch+ inicializada');
+            showLogin();
+            setupStarRating();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, configurando event listeners...');
+
+            // Inicializar tela de introdução
+            initializeIntroScreen();
+
+            // Login e Logout
+            document.getElementById('login-button').addEventListener('click', handleLogin);
+            document.getElementById('logout-button').addEventListener('click', handleLogout);
+
+            // Registro
+            document.getElementById('register-adotante-btn').addEventListener('click', () => showView('register-adotante-view'));
+            document.getElementById('register-abrigo-btn').addEventListener('click', () => showView('register-abrigo-view'));
+            document.getElementById('register-loja-btn').addEventListener('click', () => showView('register-loja-view'));
+
+            document.getElementById('back-to-login-from-adotante').addEventListener('click', showLogin);
+            document.getElementById('back-to-login-from-abrigo').addEventListener('click', showLogin);
+            document.getElementById('back-to-login-from-loja').addEventListener('click', showLogin);
+
+            document.getElementById('register-adotante-submit').addEventListener('click', () => handleRegister('adotante'));
+            document.getElementById('register-abrigo-submit').addEventListener('click', () => handleRegister('abrigo'));
+            document.getElementById('register-loja-submit').addEventListener('click', () => handleRegister('loja'));
+
+            // Modais
+            document.getElementById('close-message-modal').addEventListener('click', hideMessageModal);
+
+            // Abrigo
+            document.getElementById('tab-animais').addEventListener('click', () => showAbrigoSection('animais'));
+            document.getElementById('tab-processos').addEventListener('click', () => showAbrigoSection('processos'));
+            document.getElementById('tab-abrigo-chat').addEventListener('click', () => showAbrigoSection('chat'));
+            document.getElementById('add-animal-btn').addEventListener('click', handleAddAnimal);
+            document.getElementById('save-animal-btn').addEventListener('click', saveAnimalChanges);
+
+            // Adotante
+            document.getElementById('tab-adotante-animais').addEventListener('click', () => showAdotanteSection('animais'));
+            document.getElementById('tab-minhas-adocoes').addEventListener('click', () => showAdotanteSection('minhas-adocoes'));
+            document.getElementById('tab-lojas').addEventListener('click', () => showAdotanteSection('lojas'));
+            document.getElementById('tab-compras').addEventListener('click', () => showAdotanteSection('compras'));
+            document.getElementById('tab-adotante-chat').addEventListener('click', () => showAdotanteSection('chat'));
+
+            // Loja
+            document.getElementById('tab-loja-produtos').addEventListener('click', () => showLojaSection('produtos'));
+            document.getElementById('tab-loja-info').addEventListener('click', () => showLojaSection('info'));
+            document.getElementById('tab-loja-contatos').addEventListener('click', () => showLojaSection('contatos'));
+            document.getElementById('tab-loja-pedidos').addEventListener('click', () => showLojaSection('pedidos'));
+            document.getElementById('add-product-btn').addEventListener('click', () => openProductModal());
+            document.getElementById('save-product-btn').addEventListener('click', saveProduct);
+
+            // Filtros
+            document.getElementById('filter-categoria').addEventListener('change', loadAnimaisDisponiveis);
+            document.getElementById('filter-porte').addEventListener('change', loadAnimaisDisponiveis);
+
+            // Chat
+            document.getElementById('send-adotante-message-btn').addEventListener('click', enviarMensagemChat);
+            document.getElementById('send-abrigo-message-btn').addEventListener('click', enviarMensagemChat);
+
+            // Enter key para chat
+            document.getElementById('adotante-chat-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    enviarMensagemChat();
+                }
+            });
+
+            document.getElementById('abrigo-chat-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    enviarMensagemChat();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
